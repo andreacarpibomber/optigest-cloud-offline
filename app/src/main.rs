@@ -2,6 +2,8 @@
 
 mod config;
 mod db;
+#[cfg(debug_assertions)]
+mod dev_store;
 mod globals;
 mod logdb;
 mod pair;
@@ -18,6 +20,7 @@ fn main() {
 			session::boot_state,
 			session::connect_upstream,
 			session::logout,
+			session::is_unlocked,
 			pin::set_pin,
 			pin::verify_pin,
 			pair::start_pair,
@@ -31,6 +34,7 @@ fn main() {
 }
 
 fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
+	secure_store::init(app.handle())?;
 	config::init(app.handle())?;
 	db::init(app.handle())?;
 	let _ = logdb::write(&format!("Avvio applicazione (host: {})", globals::backend_domain()));

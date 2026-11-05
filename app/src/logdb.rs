@@ -3,6 +3,7 @@
 
 use crate::db;
 use crate::secure_store::err_to_string;
+use crate::session;
 use rusqlite::{params, Row};
 use serde::Serialize;
 
@@ -28,6 +29,7 @@ pub fn write(message: &str) -> Result<(), String> {
 // Dal più recente al più vecchio.
 #[tauri::command]
 pub fn list_logs(limit: Option<u32>) -> Result<Vec<LogEntry>, String> {
+	session::require_unlocked()?;
 	let max = limit.unwrap_or(DEFAULT_LIST_LIMIT).min(MAX_LIST_LIMIT);
 	let guard = db::lock();
 	let connection = db::get(&guard)?;

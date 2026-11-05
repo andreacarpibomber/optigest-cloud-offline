@@ -1,21 +1,16 @@
-// Flusso (schema su carta):
-// splash -> sessione salvata? NO -> pair
-//                             SI -> PIN presente? SI -> sblocco / NO -> imposta PIN
-//        -> home (studio, utente, saluto, conteggi pazienti/visite)
+// Ingresso: splash -> sessione salvata? NO -> pair
+//                                       SI -> PIN presente? SI -> sblocco / NO -> imposta PIN
+//        -> homepage.html (dopo il PIN)
+// Dipende da common.js (invoke, $, sleep).
 
-const invoke = window.__TAURI__.core.invoke;
 const listen = window.__TAURI__.event.listen;
 
 const MIN_SPLASH_MS = 1800;
 const HOST_LONG_PRESS_MS = 3000;
+const HOME_PAGE = "homepage.html";
 
 let pinMode = "unlock";
 let hostTimer = null;
-let currentHost = "";
-
-function $(id) {
-	return document.getElementById(id);
-}
 
 function show(viewId) {
 	document.querySelectorAll(".view").forEach(hideView);
@@ -26,11 +21,8 @@ function hideView(view) {
 	view.classList.remove("active");
 }
 
-function sleep(ms) {
-	return new Promise(function (resolve) { setTimeout(resolve, ms); });
-}
-
 async function start() {
+	if (await invoke("is_unlocked")) { openHome(); return; }
 	show("view-splash");
 	$("splash-note").textContent = "";
 	$("btn-repair").classList.add("hidden");
@@ -93,7 +85,7 @@ async function submitNewPin(pin) {
 		$("pin-error").textContent = String(error);
 		return;
 	}
-	await openHome();
+	openHome();
 }
 
 async function submitUnlock(pin) {
@@ -104,71 +96,20 @@ async function submitUnlock(pin) {
 		$("pin-error").textContent = String(error);
 		return;
 	}
-	if (outcome.status === "ok") { await openHome(); return; }
+	if (outcome.status === "ok") { openHome(); return; }
 	if (outcome.status === "locked") { await start(); return; }
 	$("pin-input").value = "";
 	$("pin-error").textContent = "PIN errato. Tentativi rimasti: " + outcome.remaining;
 }
 
-async function openHome() {
-	await loadHost();
-	show("view-home");
-	setStatus("", "Connessione...");
-	$("home-org").textContent = "";
-	$("home-user").textContent = "";
-	$("home-greeting").textContent = "";
-	$("home-raw").textContent = "";
-	loadCounts();
-	const info = await invoke("connect_upstream");
-	if (!info.valid) { await start(); return; }
-	$("home-org").textContent = info.org || "Studio";
-	$("home-user").textContent = info.name || "Utente";
-	$("home-greeting").textContent = greeting() + " " + (info.title || "Dott.") + " " + info.name;
-	$("home-raw").textContent = info.raw || "(nessuna risposta: offline, mostrati i dati in cache)";
-	if (info.online) { setStatus("online", "Online"); return; }
-	setStatus("offline", "Offline");
+function openHome() {
+	location.replace(HOME_PAGE);
 }
 
-// Conteggi dal DB locale (record non eliminati): funzionano anche offline.
-async function loadCounts() {
-	try {
-		const counts = await invoke("get_counts");
-		$("count-patients").textContent = formatNumber(counts.patients);
-		$("count-visits").textContent = formatNumber(counts.visits);
-	} catch (error) {
-		$("count-patients").textContent = "?";
-		$("count-visits").textContent = "?";
-	}
-}
-
-function greeting() {
-	const hour = new Date().getHours();
-	if (hour < 13) { return "Buon giorno"; }
-	if (hour < 18) { return "Buon pomeriggio"; }
-	return "Buona sera";
-}
-
-// 15480 -> 15'480
-function formatNumber(value) {
-	return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
-}
-
-function setStatus(kind, label) {
-	const status = $("home-status");
-	status.className = "status " + kind;
-	status.querySelector("span").textContent = currentHost ? label + " · " + currentHost : label;
-}
-
-// Host corrente (da config.json): mostrato sullo splash e accanto allo stato in home.
+// Host corrente (da config.json): mostrato sullo splash.
 async function loadHost() {
 	const info = await invoke("get_hosts");
-	currentHost = info.current;
-	$("splash-host").textContent = currentHost;
-}
-
-async function logout() {
-	await invoke("logout");
-	await start();
+	$("splash-host").textContent = info.current;
 }
 
 // Selettore host: long press 3s sul logo dello splash (come la fascia in alto nell'app Swift).
@@ -204,7 +145,6 @@ function logoPressEnd() {
 
 $("pin-form").addEventListener("submit", submitPin);
 $("btn-repair").addEventListener("click", startPair);
-$("btn-logout").addEventListener("click", logout);
 $("host-cancel").addEventListener("click", function () { $("host-overlay").classList.add("hidden"); });
 $("logo").addEventListener("pointerdown", logoPressStart);
 $("logo").addEventListener("pointerup", logoPressEnd);

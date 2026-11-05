@@ -2,6 +2,7 @@
 
 use crate::db;
 use crate::secure_store::err_to_string;
+use crate::session;
 use rusqlite::Row;
 use serde::Serialize;
 
@@ -15,6 +16,7 @@ pub struct Counts {
 
 #[tauri::command]
 pub fn get_counts() -> Result<Counts, String> {
+	session::require_unlocked()?;
 	let guard = db::lock();
 	let connection = db::get(&guard)?;
 	connection.query_row(COUNTS_SQL, [], row_to_counts).map_err(err_to_string)

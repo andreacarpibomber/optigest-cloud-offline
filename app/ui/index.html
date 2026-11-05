@@ -4,14 +4,13 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>EosMedTech - OptiGest Cloud Offline</title>
-	<link rel="stylesheet" href="style.css">
-	<link rel="stylesheet" href="home.css">
+	<link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
 
 	<!-- Splash di benvenuto (schema su carta: logo + Benvenuto/a) -->
 	<section id="view-splash" class="view active">
-		<img id="logo" class="logo" src="logo.svg" alt="EosMedTech">
+		<img id="logo" class="logo" src="assets/img/logo.svg" alt="EosMedTech">
 		<h1>Benvenuto/a</h1>
 		<p class="company">EosMedTech Srl</p>
 		<p id="splash-host" class="site"></p>
@@ -22,7 +21,7 @@
 
 	<!-- Impostazione / sblocco PIN -->
 	<section id="view-pin" class="view">
-		<img class="logo small" src="logo.svg" alt="EosMedTech">
+		<img class="logo small" src="assets/img/logo.svg" alt="EosMedTech">
 		<h2 id="pin-title"></h2>
 		<form id="pin-form" autocomplete="off">
 			<input id="pin-input" type="password" inputmode="numeric" maxlength="8" placeholder="PIN" autocomplete="off">
@@ -30,40 +29,6 @@
 			<button type="submit" id="pin-submit">Continua</button>
 		</form>
 		<p id="pin-error" class="error"></p>
-	</section>
-
-	<!-- Home post-login -->
-	<section id="view-home" class="view">
-		<header class="topbar">
-			<span id="home-org" class="topbar-org"></span>
-			<span id="home-user" class="topbar-user"></span>
-			<span class="topbar-spacer"></span>
-			<div id="home-status" class="status"><i></i><span></span></div>
-			<button id="btn-logout" class="link corner" type="button">Disconnetti</button>
-		</header>
-		<div class="content">
-			<h1 id="home-greeting" class="greeting"></h1>
-			<div class="widgets">
-				<div class="card-widget">
-					<div class="card-head">
-						<h2 class="card-title">Pazienti</h2>
-						<svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
-					</div>
-					<div id="count-patients" class="big-number">-</div>
-				</div>
-				<div class="card-widget">
-					<div class="card-head">
-						<h2 class="card-title">Visite</h2>
-						<svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
-					</div>
-					<div id="count-visits" class="big-number">-</div>
-				</div>
-			</div>
-			<details class="debug" open>
-				<summary>Risposta del login (segreti oscurati)</summary>
-				<pre id="home-raw"></pre>
-			</details>
-		</div>
 	</section>
 
 	<!-- Selettore host (long press 3s sul logo dello splash) -->
@@ -75,6 +40,7 @@
 		</div>
 	</div>
 
-	<script src="app.js"></script>
+	<script src="assets/js/common.js"></script>
+	<script src="assets/js/index.js"></script>
 </body>
 </html>

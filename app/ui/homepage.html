@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="it">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Home - OptiGest Cloud Offline</title>
+	<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body class="page" data-page="homepage" data-refresh="true">
+	<header id="topbar"></header>
+	<main class="content">
+		<h1 id="home-greeting" class="greeting"></h1>
+		<div class="widgets">
+			<a class="card-widget" href="patients.html">
+				<div class="card-head">
+					<h2 class="card-title">Pazienti</h2>
+					<svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+				</div>
+				<div id="count-patients" class="big-number">-</div>
+			</a>
+			<a class="card-widget" href="visits.html">
+				<div class="card-head">
+					<h2 class="card-title">Visite</h2>
+					<svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
+				</div>
+				<div id="count-visits" class="big-number">-</div>
+			</a>
+		</div>
+		<details class="debug" open>
+			<summary>Risposta del login (segreti oscurati)</summary>
+			<pre id="home-raw"></pre>
+		</details>
+	</main>
+	<script src="assets/js/common.js"></script>
+	<script src="assets/js/homepage.js"></script>
+</body>
+</html>

@@ -10,9 +10,13 @@ use crate::profile::{self, Profile};
 use crate::secure_store;
 use crate::secure_store::err_to_string;
 use serde::Serialize;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 const UPSTREAM_TIMEOUT_SECS: u64 = 8;
+
+// true solo dopo PIN corretto: le pagine interne e i comandi sui dati lo richiedono.
+static UNLOCKED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Serialize)]
 pub struct UpstreamInfo {
@@ -37,6 +41,7 @@ pub fn boot_state() -> &'static str {
 
 #[tauri::command]
 pub async fn connect_upstream() -> Result<UpstreamInfo, String> {
+	require_unlocked()?;
 	let token = secure_store::get(secure_store::KEY_TOKEN).unwrap_or_default();
 	let cached = Profile::from_cache(&secure_store::get(secure_store::KEY_NAME).unwrap_or_default());
 	if token.is_empty() { return Ok(info(false, false, Profile::default(), String::new())); }
@@ -68,8 +73,24 @@ pub async fn connect_upstream() -> Result<UpstreamInfo, String> {
 	Ok(info(true, true, received, profile::redacted(&body)))
 }
 
+// Le pagine interne la chiamano all'apertura: se false, tornano a index.html (PIN).
+#[tauri::command]
+pub fn is_unlocked() -> bool {
+	UNLOCKED.load(Ordering::SeqCst)
+}
+
+pub fn set_unlocked(value: bool) {
+	UNLOCKED.store(value, Ordering::SeqCst);
+}
+
+pub fn require_unlocked() -> Result<(), String> {
+	if is_unlocked() { return Ok(()); }
+	Err("App bloccata: inserire il PIN".to_string())
+}
+
 #[tauri::command]
 pub fn logout() {
+	set_unlocked(false);
 	secure_store::clear_session();
 	let _ = logdb::write("Logout");
 }

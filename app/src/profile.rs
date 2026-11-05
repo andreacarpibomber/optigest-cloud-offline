@@ -1,13 +1,16 @@
 // Dati utente/studio ricevuti dal login (testLogin.php), con cache nel keychain per l'uso offline.
-// TODO: allineare le chiavi al contratto reale: la risposta (con i segreti oscurati) è mostrata
-// nel pannello "Risposta del login" della home.
+// Risposta attesa: {"success": true, "user": {"UserEmail", "UserID", "UserName", "UserSurname", "UserTitle"}}.
+// Il nome studio non è (ancora) nella risposta: si cerca in "user" e nella radice sotto le chiavi di ORG_KEYS.
+// Le chiavi si confrontano senza distinguere maiuscole/minuscole, quindi vanno scritte minuscole qui.
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-const USER_KEYS: [&str; 4] = ["name", "userName", "user", "fullName"];
-const ORG_KEYS: [&str; 5] = ["org", "orgName", "organization", "studio", "practice"];
-const TITLE_KEYS: [&str; 2] = ["title", "prefix"];
+const FIRST_NAME_KEYS: [&str; 3] = ["username", "firstname", "name"];
+const SURNAME_KEYS: [&str; 3] = ["usersurname", "surname", "lastname"];
+const FULL_NAME_KEYS: [&str; 2] = ["fullname", "displayname"];
+const ORG_KEYS: [&str; 7] = ["orgname", "org", "organization", "organizationname", "practicename", "practice", "studio"];
+const TITLE_KEYS: [&str; 3] = ["usertitle", "title", "prefix"];
 const SECRET_KEY_PARTS: [&str; 4] = ["tkn", "token", "pass", "pwd"];
 const MAX_RAW_CHARS: usize = 2000;
 
@@ -25,11 +28,13 @@ impl Profile {
 			Ok(value) => value,
 			Err(_) => return Profile::default(),
 		};
-		Profile {
-			name: first_string(&value, &USER_KEYS),
-			org: first_string(&value, &ORG_KEYS),
-			title: first_string(&value, &TITLE_KEYS),
-		}
+		let user = match value.get("user") {
+			Some(user) if user.is_object() => user,
+			_ => &value,
+		};
+		let mut org = find_string(user, &ORG_KEYS);
+		if org.is_empty() { org = find_string(&value, &ORG_KEYS); }
+		Profile { name: full_name(user), org: org, title: find_string(user, &TITLE_KEYS) }
 	}
 
 	// Cache nel keychain: JSON. Il vecchio formato (solo nome in chiaro) viene letto come nome.
@@ -69,11 +74,26 @@ pub fn redacted(body: &str) -> String {
 	serde_json::to_string_pretty(&value).unwrap_or_default()
 }
 
-fn first_string(value: &Value, keys: &[&str]) -> String {
+fn full_name(user: &Value) -> String {
+	let first = find_string(user, &FIRST_NAME_KEYS);
+	let surname = find_string(user, &SURNAME_KEYS);
+	if first.is_empty() && surname.is_empty() { return find_string(user, &FULL_NAME_KEYS); }
+	format!("{} {}", first, surname).trim().to_string()
+}
+
+// Primo valore testuale non vuoto, nell'ordine delle chiavi richieste (chiavi dell'oggetto confrontate in minuscolo).
+fn find_string(value: &Value, keys: &[&str]) -> String {
+	let map = match value.as_object() {
+		Some(map) => map,
+		None => return String::new(),
+	};
 	for key in keys {
-		if let Some(text) = value.get(*key).and_then(Value::as_str) {
-			let trimmed = text.trim();
-			if !trimmed.is_empty() { return trimmed.to_string(); }
+		for (name, child) in map {
+			if name.to_lowercase() != *key { continue; }
+			if let Some(text) = child.as_str() {
+				let trimmed = text.trim();
+				if !trimmed.is_empty() { return trimmed.to_string(); }
+			}
 		}
 	}
 	String::new()

@@ -21,9 +21,17 @@ function sleep(ms) {
 	return new Promise(function (resolve) { setTimeout(resolve, ms); });
 }
 
-// 15480 -> 15'480
-function formatNumber(value) {
-	return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+// 15480 -> 15'480 (separatore a scelta: nelle tabelle si usa il punto, 2.614)
+function formatNumber(value, separator) {
+	return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, separator || "'");
+}
+
+// "1990-05-01" -> "01/05/1990"
+function formatDate(value) {
+	if (!value) { return ""; }
+	const parts = value.split("-");
+	if (parts.length !== 3) { return value; }
+	return parts[2] + "/" + parts[1] + "/" + parts[0];
 }
 
 async function initPage() {

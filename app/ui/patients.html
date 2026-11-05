@@ -8,10 +8,38 @@
 </head>
 <body class="page" data-page="patients">
 	<header id="topbar"></header>
-	<main class="content">
+	<main class="content wide">
 		<h1 class="page-title">Pazienti</h1>
-		<p class="placeholder">Da compilare.</p>
+		<div class="table-card">
+			<table class="data-table">
+				<thead>
+					<tr class="head-row">
+						<th data-sort="id"><button type="button" class="sort">ID paziente<span class="arrows"><i class="up"></i><i class="down"></i></span></button></th>
+						<th data-sort="surname"><button type="button" class="sort">Cognome<span class="arrows"><i class="up"></i><i class="down"></i></span></button></th>
+						<th data-sort="name"><button type="button" class="sort">Nome<span class="arrows"><i class="up"></i><i class="down"></i></span></button></th>
+						<th data-sort="birthday"><button type="button" class="sort">Data di nascita<span class="arrows"><i class="up"></i><i class="down"></i></span></button></th>
+						<th data-sort="fiscal_code"><button type="button" class="sort">Codice fiscale<span class="arrows"><i class="up"></i><i class="down"></i></span></button></th>
+						<th class="col-action">Azioni</th>
+					</tr>
+					<tr class="filter-row">
+						<th><input id="f-id" type="text" inputmode="numeric" placeholder="ID Paziente" autocomplete="off"></th>
+						<th><input id="f-surname" type="text" placeholder="Cognome" autocomplete="off"></th>
+						<th><input id="f-name" type="text" placeholder="Nome" autocomplete="off"></th>
+						<th><input id="f-birthday" type="date"></th>
+						<th><input id="f-fiscal" type="text" placeholder="Codice Fiscale" autocomplete="off"></th>
+						<th class="col-action"></th>
+					</tr>
+				</thead>
+				<tbody id="patients-body"></tbody>
+			</table>
+			<p id="patients-error" class="table-error"></p>
+			<div class="table-foot">
+				<span id="results-info"></span>
+				<nav id="pager" class="pager" aria-label="Pagine"></nav>
+			</div>
+		</div>
 	</main>
 	<script src="assets/js/common.js"></script>
+	<script src="assets/js/patients.js"></script>
 </body>
 </html>

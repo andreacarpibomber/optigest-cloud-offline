@@ -23,7 +23,6 @@ pub struct PinOutcome {
 	remaining: u32,
 }
 
-#[tauri::command]
 pub fn set_pin(pin: String) -> Result<(), String> {
 	validate_format(&pin)?;
 	let salt = SaltString::generate(&mut OsRng);
@@ -34,7 +33,6 @@ pub fn set_pin(pin: String) -> Result<(), String> {
 	Ok(())
 }
 
-#[tauri::command]
 pub fn verify_pin(pin: String) -> Result<PinOutcome, String> {
 	let stored = match secure_store::get(secure_store::KEY_PIN_HASH) {
 		Some(stored) => stored,

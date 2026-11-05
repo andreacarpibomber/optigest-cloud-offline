@@ -88,3 +88,46 @@ a.card-widget:hover { transform: translateY(-2px); }
 .debug { margin-top: 40px; padding: 18px 22px; border-radius: 20px; background: var(--secundary); box-shadow: var(--shadow); }
 .debug summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--quinquernary); }
 .debug pre { margin: 14px 0 0; padding: 14px; border-radius: 12px; background: var(--backgroundGrey); font-size: 12px; white-space: pre-wrap; word-break: break-word; }
+
+/* Tabelle (elenco pazienti, ecc.) */
+.content.wide { max-width: 1400px; }
+
+.table-card { padding: 8px 24px 20px; border-radius: 12px; background: var(--secundary); box-shadow: var(--shadow); overflow-x: auto; }
+.data-table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.data-table th { padding: 14px 12px 8px; text-align: left; font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--primary); }
+.data-table .filter-row th { padding: 0 12px 16px; }
+.data-table .filter-row { border-bottom: 2px solid var(--backgroundGrey); }
+.data-table td { padding: 18px 12px; border-bottom: 1px solid var(--backgroundGrey); }
+.data-row { cursor: pointer; }
+.data-row:hover { background: var(--background); }
+.data-table .col-action { width: 90px; }
+.data-table .row-open { display: inline-flex; color: var(--primary); }
+.data-table .row-open svg { width: 20px; height: 20px; }
+
+.data-table input { width: 100%; box-sizing: border-box; padding: 10px 14px; border: 0; border-radius: 4px; background: #efeff3; color: var(--primary); font-family: var(--main-font); font-size: 14px; }
+.data-table input::placeholder { color: var(--backgroundHeavy); }
+.data-table input:focus { outline: 2px solid var(--quaternary); }
+
+.sort { display: inline-flex; align-items: center; gap: 10px; padding: 0; border: 0; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; cursor: pointer; }
+.arrows { display: inline-flex; flex-direction: column; gap: 3px; }
+.arrows i { display: block; width: 6px; height: 6px; border-right: 2px solid var(--backgroundHeavy); border-bottom: 2px solid var(--backgroundHeavy); opacity: .5; }
+.arrows .up { transform: rotate(-135deg); }
+.arrows .down { transform: rotate(45deg); }
+.sorted-asc .arrows .up,
+.sorted-desc .arrows .down { border-color: var(--primary); opacity: 1; }
+
+.table-foot { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 4px 0; font-size: 14px; }
+.table-error { margin: 0; padding: 12px; color: #c0392b; font-size: 14px; }
+.table-error:empty { display: none; }
+
+.pager { display: flex; align-items: center; gap: 4px; }
+.pager button { min-width: 28px; padding: 4px 6px; border: 0; border-radius: 6px; background: none; font-family: var(--main-font); font-size: 14px; color: var(--primary); cursor: pointer; }
+.pager button:hover:not(:disabled) { background: var(--background); }
+.pager button:disabled { color: var(--backgroundHeavy); cursor: default; }
+.pager button.current { background: var(--primary); color: var(--secundary); }
+
+/* Scheda paziente */
+.detail-card { min-height: 0; }
+.fields { display: grid; grid-template-columns: max-content 1fr; gap: 12px 32px; margin: 0; }
+.fields dt { font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--quinquernary); }
+.fields dd { margin: 0; white-space: pre-wrap; word-break: break-word; }

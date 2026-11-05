@@ -31,7 +31,6 @@ pub struct UpstreamInfo {
 	raw: String,
 }
 
-#[tauri::command]
 pub fn boot_state() -> &'static str {
 	let token = secure_store::get(secure_store::KEY_TOKEN).unwrap_or_default();
 	if token.is_empty() { return "pair"; }
@@ -39,9 +38,7 @@ pub fn boot_state() -> &'static str {
 	"unlock"
 }
 
-#[tauri::command]
 pub async fn connect_upstream() -> Result<UpstreamInfo, String> {
-	require_unlocked()?;
 	let token = secure_store::get(secure_store::KEY_TOKEN).unwrap_or_default();
 	let cached = Profile::from_cache(&secure_store::get(secure_store::KEY_NAME).unwrap_or_default());
 	if token.is_empty() { return Ok(info(false, false, Profile::default(), String::new())); }
@@ -74,7 +71,6 @@ pub async fn connect_upstream() -> Result<UpstreamInfo, String> {
 }
 
 // Le pagine interne la chiamano all'apertura: se false, tornano a index.html (PIN).
-#[tauri::command]
 pub fn is_unlocked() -> bool {
 	UNLOCKED.load(Ordering::SeqCst)
 }
@@ -88,7 +84,6 @@ pub fn require_unlocked() -> Result<(), String> {
 	Err("App bloccata: inserire il PIN".to_string())
 }
 
-#[tauri::command]
 pub fn logout() {
 	set_unlocked(false);
 	secure_store::clear_session();

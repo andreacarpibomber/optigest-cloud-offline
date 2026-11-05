@@ -1,12 +1,15 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod config;
+mod db;
 mod globals;
 mod logdb;
 mod pair;
 mod pin;
+mod profile;
 mod secure_store;
 mod session;
+mod stats;
 
 fn main() {
 	tauri::Builder::default()
@@ -21,6 +24,7 @@ fn main() {
 			globals::get_hosts,
 			globals::set_host,
 			logdb::list_logs,
+			stats::get_counts,
 		])
 		.run(tauri::generate_context!())
 		.expect("errore durante l'avvio di OptiGest Cloud Offline");
@@ -28,7 +32,7 @@ fn main() {
 
 fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 	config::init(app.handle())?;
-	logdb::init(app.handle())?;
+	db::init(app.handle())?;
 	let _ = logdb::write(&format!("Avvio applicazione (host: {})", globals::backend_domain()));
 	Ok(())
 }

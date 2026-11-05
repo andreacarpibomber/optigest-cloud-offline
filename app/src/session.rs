@@ -6,6 +6,7 @@
 
 use crate::globals;
 use crate::logdb;
+use crate::profile::{self, Profile};
 use crate::secure_store;
 use crate::secure_store::err_to_string;
 use serde::Serialize;
@@ -20,6 +21,10 @@ pub struct UpstreamInfo {
 	// false solo se il cloud ha rifiutato il token
 	valid: bool,
 	name: String,
+	org: String,
+	title: String,
+	// risposta del cloud con i segreti oscurati, per valutare a schermo cosa arriva dal login
+	raw: String,
 }
 
 #[tauri::command]
@@ -33,8 +38,8 @@ pub fn boot_state() -> &'static str {
 #[tauri::command]
 pub async fn connect_upstream() -> Result<UpstreamInfo, String> {
 	let token = secure_store::get(secure_store::KEY_TOKEN).unwrap_or_default();
-	let cached_name = secure_store::get(secure_store::KEY_NAME).unwrap_or_default();
-	if token.is_empty() { return Ok(UpstreamInfo { online: false, valid: false, name: String::new() }); }
+	let cached = Profile::from_cache(&secure_store::get(secure_store::KEY_NAME).unwrap_or_default());
+	if token.is_empty() { return Ok(info(false, false, Profile::default(), String::new())); }
 
 	let client = reqwest::Client::builder()
 		.timeout(Duration::from_secs(UPSTREAM_TIMEOUT_SECS))
@@ -43,24 +48,24 @@ pub async fn connect_upstream() -> Result<UpstreamInfo, String> {
 	let response = match client.get(globals::test_login_url()).query(&[("tkn", token.as_str())]).send().await {
 		Ok(response) => response,
 		// Offline: si lavora con quanto in cache, il token non viene toccato.
-		Err(_) => return Ok(UpstreamInfo { online: false, valid: true, name: cached_name }),
+		Err(_) => return Ok(info(false, true, cached, String::new())),
 	};
 
 	let status = response.status().as_u16();
 	if status == 401 {
 		secure_store::clear_session();
 		let _ = logdb::write("Token rifiutato dal cloud (401): sessione eliminata");
-		return Ok(UpstreamInfo { online: true, valid: false, name: String::new() });
+		return Ok(info(true, false, Profile::default(), String::new()));
 	}
 	if status != 200 {
 		// 403 = manutenzione, 5xx = problemi server: non si butta la sessione.
-		return Ok(UpstreamInfo { online: false, valid: true, name: cached_name });
+		return Ok(info(false, true, cached, String::new()));
 	}
 
 	let body = response.text().await.unwrap_or_default();
-	let name = extract_name(&body).unwrap_or(cached_name);
-	if !name.is_empty() { let _ = secure_store::set(secure_store::KEY_NAME, &name); }
-	Ok(UpstreamInfo { online: true, valid: true, name })
+	let received = Profile::from_body(&body).with_fallback(&cached);
+	if !received.is_empty() && received != cached { let _ = secure_store::set(secure_store::KEY_NAME, &received.to_cache()); }
+	Ok(info(true, true, received, profile::redacted(&body)))
 }
 
 #[tauri::command]
@@ -69,10 +74,6 @@ pub fn logout() {
 	let _ = logdb::write("Logout");
 }
 
-// TODO: da allineare al contratto reale di testLogin.php (oggi si assume un JSON con "name").
-fn extract_name(body: &str) -> Option<String> {
-	let value: serde_json::Value = serde_json::from_str(body).ok()?;
-	let name = value.get("name")?.as_str()?.trim().to_string();
-	if name.is_empty() { return None; }
-	Some(name)
+fn info(online: bool, valid: bool, profile: Profile, raw: String) -> UpstreamInfo {
+	UpstreamInfo { online, valid, name: profile.name, org: profile.org, title: profile.title, raw }
 }

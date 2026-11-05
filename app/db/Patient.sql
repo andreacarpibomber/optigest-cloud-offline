@@ -1,0 +1,31 @@
+-- Pazienti (da _ORG_PREFIX_Patient).
+CREATE TABLE IF NOT EXISTS Patient (
+	PatientID INTEGER PRIMARY KEY,
+	PatientName TEXT NOT NULL,
+	PatientSurname TEXT NOT NULL,
+	PatientBirthday TEXT,
+	PatientBirthPlace TEXT NOT NULL,
+	PatientBirthProvince TEXT NOT NULL,
+	PatientGender TEXT NOT NULL,
+	PatientFiscalCode TEXT NOT NULL,
+	PatientSendingPracticioner TEXT NOT NULL,
+	PatientCurrentPractitioner TEXT NOT NULL,
+	PatientEmail TEXT NOT NULL,
+	PatientTags TEXT NOT NULL,
+	PatientAllergies TEXT NOT NULL,
+	PatientGeneralAnamnesy TEXT NOT NULL,
+	PatientOcularAnamnesy TEXT NOT NULL,
+	PatientAddress TEXT NOT NULL,
+	PatientCity TEXT NOT NULL,
+	PatientProvince TEXT NOT NULL,
+	PatientPostalCode TEXT NOT NULL,
+	PatientNation TEXT NOT NULL,
+	PatientInfo TEXT NOT NULL,
+	PatientOptions TEXT CHECK (PatientOptions IS NULL OR json_valid(PatientOptions)),
+	PatientTelephones TEXT NOT NULL,
+	PatientLastConsentDate TEXT,
+	PatientCreatedOn TEXT NOT NULL,
+	PatientLastUpdate TEXT NOT NULL,
+	PatientDeleted INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_Patient_deleted ON Patient (PatientDeleted);

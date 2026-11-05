@@ -1,7 +1,7 @@
 // Flusso (schema su carta):
 // splash -> sessione salvata? NO -> pair
 //                             SI -> PIN presente? SI -> sblocco / NO -> imposta PIN
-//        -> home (pagina vuota con il nome utente)
+//        -> home (studio, utente, saluto, conteggi pazienti/visite)
 
 const invoke = window.__TAURI__.core.invoke;
 const listen = window.__TAURI__.event.listen;
@@ -114,12 +114,43 @@ async function openHome() {
 	await loadHost();
 	show("view-home");
 	setStatus("", "Connessione...");
-	$("home-name").textContent = "";
+	$("home-org").textContent = "";
+	$("home-user").textContent = "";
+	$("home-greeting").textContent = "";
+	$("home-raw").textContent = "";
+	loadCounts();
 	const info = await invoke("connect_upstream");
 	if (!info.valid) { await start(); return; }
-	$("home-name").textContent = info.name || "Utente";
+	$("home-org").textContent = info.org || "Studio";
+	$("home-user").textContent = info.name || "Utente";
+	$("home-greeting").textContent = greeting() + " " + (info.title || "Dott.") + " " + info.name;
+	$("home-raw").textContent = info.raw || "(nessuna risposta: offline, mostrati i dati in cache)";
 	if (info.online) { setStatus("online", "Online"); return; }
 	setStatus("offline", "Offline");
+}
+
+// Conteggi dal DB locale (record non eliminati): funzionano anche offline.
+async function loadCounts() {
+	try {
+		const counts = await invoke("get_counts");
+		$("count-patients").textContent = formatNumber(counts.patients);
+		$("count-visits").textContent = formatNumber(counts.visits);
+	} catch (error) {
+		$("count-patients").textContent = "?";
+		$("count-visits").textContent = "?";
+	}
+}
+
+function greeting() {
+	const hour = new Date().getHours();
+	if (hour < 13) { return "Buon giorno"; }
+	if (hour < 18) { return "Buon pomeriggio"; }
+	return "Buona sera";
+}
+
+// 15480 -> 15'480
+function formatNumber(value) {
+	return String(value).replace(/\B(?=(\d{3})+(?!\d))/g, "'");
 }
 
 function setStatus(kind, label) {

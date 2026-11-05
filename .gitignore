@@ -1,0 +1,10 @@
+# Rust / Cargo
+target/
+**/*.rs.bk
+*.pdb
+
+# Tauri
+gen/schemas/
+gen/apple/
+gen/android/
+WixTools/

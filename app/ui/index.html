@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="it">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>EosMedTech - OptiGest Cloud Offline</title>
+	<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+	<!-- Splash di benvenuto (schema su carta: logo + Benvenuto/a) -->
+	<section id="view-splash" class="view active">
+		<img id="logo" class="logo" src="assets/img/logo.svg" alt="EosMedTech">
+		<h1>Benvenuto/a</h1>
+		<p class="company">EosMedTech Srl</p>
+		<p id="splash-host" class="site"></p>
+		<div class="loader"><span></span></div>
+		<p id="splash-note" class="note"></p>
+		<button id="btn-repair" class="link hidden" type="button">Riapri la finestra di accesso</button>
+	</section>
+
+	<!-- Impostazione / sblocco PIN -->
+	<section id="view-pin" class="view">
+		<img class="logo small" src="assets/img/logo.svg" alt="EosMedTech">
+		<h2 id="pin-title"></h2>
+		<form id="pin-form" autocomplete="off">
+			<input id="pin-input" type="password" inputmode="numeric" maxlength="8" placeholder="PIN" autocomplete="off">
+			<input id="pin-confirm" class="hidden" type="password" inputmode="numeric" maxlength="8" placeholder="Ripeti il PIN" autocomplete="off">
+			<button type="submit" id="pin-submit">Continua</button>
+		</form>
+		<p id="pin-error" class="error"></p>
+	</section>
+
+	<!-- Selettore host (long press 3s sul logo dello splash) -->
+	<div id="host-overlay" class="overlay hidden">
+		<div class="sheet">
+			<h3>Seleziona host</h3>
+			<ul id="host-list"></ul>
+			<button id="host-cancel" class="link" type="button">Annulla</button>
+		</div>
+	</div>
+
+	<script src="assets/js/common.js"></script>
+	<script src="assets/js/index.js"></script>
+</body>
+</html>

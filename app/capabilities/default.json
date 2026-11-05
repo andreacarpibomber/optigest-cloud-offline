@@ -1,0 +1,7 @@
+{
+	"$schema": "../gen/schemas/desktop-schema.json",
+	"identifier": "default",
+	"description": "Permessi della sola finestra principale. La finestra di pair (contenuto remoto) non ha alcun permesso IPC.",
+	"windows": ["main"],
+	"permissions": ["core:default"]
+}

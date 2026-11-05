@@ -19,13 +19,11 @@ pub struct HostsInfo {
 	current: String,
 }
 
-#[tauri::command]
 pub fn get_hosts() -> HostsInfo {
 	let hosts: Vec<String> = HOSTS.iter().map(host_to_string).collect();
 	HostsInfo { hosts, current: backend_domain() }
 }
 
-#[tauri::command]
 pub fn set_host(host: String) -> Result<(), String> {
 	if !select_preferred_host(&host) { return Err(format!("Host non ammesso: {}", host)); }
 	Ok(())

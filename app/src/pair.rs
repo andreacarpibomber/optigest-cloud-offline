@@ -12,7 +12,6 @@ const PAIR_LABEL: &str = "pair";
 const PREFIX_TOKEN: &str = "app://loginTkn=";
 const PREFIX_HOST: &str = "app://host=";
 
-#[tauri::command]
 pub async fn start_pair(app: AppHandle) -> Result<(), String> {
 	if let Some(existing) = app.get_webview_window(PAIR_LABEL) {
 		let _ = existing.set_focus();

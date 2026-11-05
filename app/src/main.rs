@@ -1,5 +1,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod api;
 mod config;
 mod db;
 #[cfg(debug_assertions)]
@@ -7,27 +8,33 @@ mod dev_store;
 mod globals;
 mod logdb;
 mod pair;
+mod patients;
 mod pin;
 mod profile;
 mod secure_store;
 mod session;
 mod stats;
+mod visits;
 
 fn main() {
 	tauri::Builder::default()
 		.setup(setup_app)
 		.invoke_handler(tauri::generate_handler![
-			session::boot_state,
-			session::connect_upstream,
-			session::logout,
-			session::is_unlocked,
-			pin::set_pin,
-			pin::verify_pin,
-			pair::start_pair,
-			globals::get_hosts,
-			globals::set_host,
-			logdb::list_logs,
-			stats::get_counts,
+			api::boot_state,
+			api::is_unlocked,
+			api::logout,
+			api::connect_upstream,
+			api::set_pin,
+			api::verify_pin,
+			api::start_pair,
+			api::get_hosts,
+			api::set_host,
+			api::get_counts,
+			api::list_logs,
+			api::search_patients,
+			api::get_patient,
+			api::search_visits,
+			api::get_visit,
 		])
 		.run(tauri::generate_context!())
 		.expect("errore durante l'avvio di OptiGest Cloud Offline");

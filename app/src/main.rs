@@ -6,6 +6,7 @@ mod db;
 #[cfg(debug_assertions)]
 mod dev_store;
 mod globals;
+mod httplog;
 mod logdb;
 mod pair;
 mod patients;
@@ -14,6 +15,7 @@ mod profile;
 mod secure_store;
 mod session;
 mod stats;
+mod sync;
 mod visits;
 
 fn main() {
@@ -35,6 +37,8 @@ fn main() {
 			api::get_patient,
 			api::search_visits,
 			api::get_visit,
+			api::sync_now,
+			api::get_sync_status,
 		])
 		.run(tauri::generate_context!())
 		.expect("errore durante l'avvio di OptiGest Cloud Offline");

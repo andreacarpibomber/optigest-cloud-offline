@@ -17,14 +17,15 @@ use std::sync::{Mutex, MutexGuard, PoisonError};
 use tauri::{AppHandle, Manager};
 
 const DB_FILE: &str = "optigest_offline.db";
-const SCHEMA_VERSION: i64 = 1;
+const SCHEMA_VERSION: i64 = 2;
 
-const SCHEMA_SCRIPTS: [&str; 5] = [
+const SCHEMA_SCRIPTS: [&str; 6] = [
 	include_str!("../db/Log.sql"),
 	include_str!("../db/Patient.sql"),
 	include_str!("../db/Visit.sql"),
 	include_str!("../db/Doc.sql"),
 	include_str!("../db/Event.sql"),
+	include_str!("../db/Sync.sql"),
 ];
 
 static DB: Mutex<Option<Connection>> = Mutex::new(None);

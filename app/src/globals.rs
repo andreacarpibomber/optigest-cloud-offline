@@ -10,8 +10,13 @@ pub const HOSTS: [&str; 4] = [
 	"www.eosgest.com",
 ];
 
+// Log in console delle chiamate al cloud (richiesta e risposta). Attivo solo nelle build di debug e solo se true.
+// Le risposte di sync contengono dati dei pazienti: lasciare false salvo debug mirato.
+pub const HTTP_LOG_ENABLED: bool = false;
+
 const LOGIN_SIGNUP_ENDPOINT: &str = "/app/login.php?setup=workstation&api=app";
 const TEST_LOGIN_ENDPOINT: &str = "/app/php/testLogin.php?app=true";
+const SYNC_ENDPOINT: &str = "/api/syncData.php";
 
 #[derive(Serialize)]
 pub struct HostsInfo {
@@ -46,6 +51,10 @@ pub fn login_signup_url() -> String {
 
 pub fn test_login_url() -> String {
 	format!("{}{}", backend_host(), TEST_LOGIN_ENDPOINT)
+}
+
+pub fn sync_url() -> String {
+	format!("{}{}", backend_host(), SYNC_ENDPOINT)
 }
 
 pub fn select_preferred_host(host: &str) -> bool {

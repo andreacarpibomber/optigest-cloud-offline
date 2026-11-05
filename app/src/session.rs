@@ -5,6 +5,7 @@
 // Dopo lo sblocco la UI chiama connect_upstream (validazione token su OptiGest Cloud).
 
 use crate::globals;
+use crate::httplog;
 use crate::logdb;
 use crate::profile::{self, Profile};
 use crate::secure_store;
@@ -47,13 +48,18 @@ pub async fn connect_upstream() -> Result<UpstreamInfo, String> {
 		.timeout(Duration::from_secs(UPSTREAM_TIMEOUT_SECS))
 		.build()
 		.map_err(err_to_string)?;
+	httplog::request("login", &globals::test_login_url(), &[("tkn", token.clone())]);
 	let response = match client.get(globals::test_login_url()).query(&[("tkn", token.as_str())]).send().await {
 		Ok(response) => response,
 		// Offline: si lavora con quanto in cache, il token non viene toccato.
-		Err(_) => return Ok(info(false, true, cached, String::new())),
+		Err(error) => {
+			httplog::failure("login", &error.to_string());
+			return Ok(info(false, true, cached, String::new()));
+		}
 	};
 
 	let status = response.status().as_u16();
+	httplog::response("login", status, "(corpo non letto)");
 	if status == 401 {
 		secure_store::clear_session();
 		let _ = logdb::write("Token rifiutato dal cloud (401): sessione eliminata");
@@ -65,6 +71,7 @@ pub async fn connect_upstream() -> Result<UpstreamInfo, String> {
 	}
 
 	let body = response.text().await.unwrap_or_default();
+	httplog::response("login", status, &profile::redacted(&body));
 	let received = Profile::from_body(&body).with_fallback(&cached);
 	if !received.is_empty() && received != cached { let _ = secure_store::set(secure_store::KEY_NAME, &received.to_cache()); }
 	Ok(info(true, true, received, profile::redacted(&body)))

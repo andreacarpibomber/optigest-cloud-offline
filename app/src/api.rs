@@ -3,7 +3,7 @@
 //
 //   Pubbliche (anche con app bloccata): boot_state, is_unlocked, set_pin, verify_pin, start_pair, get_hosts, set_host, logout
 //   Protette (richiedono lo sblocco con PIN): connect_upstream, get_counts, list_logs,
-//   search_patients, get_patient, search_visits, get_visit
+//   search_patients, get_patient, search_visits, get_visit, sync_now, get_sync_status
 //
 // Per aggiungere un'API: funzione qui con #[tauri::command], poi la riga in generate_handler! di main.rs.
 
@@ -14,8 +14,9 @@ use crate::patients::{self, PatientDetail, PatientPage, PatientQuery};
 use crate::pin::{self, PinOutcome};
 use crate::session::{self, UpstreamInfo};
 use crate::stats::{self, Counts};
+use crate::sync::{self, SyncReport, SyncStatus};
 use crate::visits::{self, VisitDetail, VisitPage, VisitQuery};
-use tauri::AppHandle;
+use tauri::{AppHandle, Emitter};
 
 // ---- Sessione ----
 
@@ -105,4 +106,19 @@ pub fn search_visits(query: VisitQuery) -> Result<VisitPage, String> {
 pub fn get_visit(id: i64) -> Result<VisitDetail, String> {
 	session::require_unlocked()?;
 	visits::get(id)
+}
+
+// ---- Sincronizzazione (protette) ----
+
+// Avanzamento sull'evento "sync-progress" ({ table, rows }). Errore SESSION_EXPIRED = token non più valido.
+#[tauri::command]
+pub async fn sync_now(app: AppHandle) -> Result<SyncReport, String> {
+	session::require_unlocked()?;
+	sync::run(&move |progress| { let _ = app.emit("sync-progress", progress); }).await
+}
+
+#[tauri::command]
+pub fn get_sync_status() -> Result<SyncStatus, String> {
+	session::require_unlocked()?;
+	sync::status()
 }

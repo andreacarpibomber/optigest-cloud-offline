@@ -14,6 +14,7 @@ mod profile;
 mod secure_store;
 mod session;
 mod stats;
+mod visits;
 
 fn main() {
 	tauri::Builder::default()
@@ -32,6 +33,8 @@ fn main() {
 			api::list_logs,
 			api::search_patients,
 			api::get_patient,
+			api::search_visits,
+			api::get_visit,
 		])
 		.run(tauri::generate_context!())
 		.expect("errore durante l'avvio di OptiGest Cloud Offline");

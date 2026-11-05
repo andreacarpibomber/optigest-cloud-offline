@@ -65,14 +65,6 @@ function formatPhones(text) {
 	return text;
 }
 
-// Il DB salva "YYYY-MM-DD HH:MM:SS" in UTC: si mostra nell'ora locale.
-function formatDateTime(value) {
-	if (!value) { return ""; }
-	const date = new Date(value.replace(" ", "T") + "Z");
-	if (isNaN(date.getTime())) { return value; }
-	return date.toLocaleString("it-IT");
-}
-
 function showError(message) {
 	$("patient-error").textContent = message;
 }

@@ -10,9 +10,17 @@
 	<header id="topbar"></header>
 	<main class="content">
 		<a class="back" href="visits.html">&larr; Visite</a>
-		<h1 class="page-title">Visita</h1>
-		<p class="placeholder">Da compilare.</p>
+		<h1 id="visit-title" class="page-title">Visita</h1>
+		<p id="visit-error" class="table-error"></p>
+		<div class="card-widget detail-card">
+			<dl id="visit-fields" class="fields"></dl>
+		</div>
+		<details id="visit-data-box" class="debug" hidden>
+			<summary>Dati della visita (JSON)</summary>
+			<pre id="visit-data"></pre>
+		</details>
 	</main>
 	<script src="assets/js/common.js"></script>
+	<script src="assets/js/visit.js"></script>
 </body>
 </html>

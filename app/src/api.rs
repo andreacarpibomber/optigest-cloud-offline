@@ -2,7 +2,8 @@
 // I moduli (session, pin, patients, ...) contengono solo la logica; qui si decide cosa è esposto e a quali condizioni.
 //
 //   Pubbliche (anche con app bloccata): boot_state, is_unlocked, set_pin, verify_pin, start_pair, get_hosts, set_host, logout
-//   Protette (richiedono lo sblocco con PIN): connect_upstream, get_counts, list_logs, search_patients, get_patient
+//   Protette (richiedono lo sblocco con PIN): connect_upstream, get_counts, list_logs,
+//   search_patients, get_patient, search_visits, get_visit
 //
 // Per aggiungere un'API: funzione qui con #[tauri::command], poi la riga in generate_handler! di main.rs.
 
@@ -13,6 +14,7 @@ use crate::patients::{self, PatientDetail, PatientPage, PatientQuery};
 use crate::pin::{self, PinOutcome};
 use crate::session::{self, UpstreamInfo};
 use crate::stats::{self, Counts};
+use crate::visits::{self, VisitDetail, VisitPage, VisitQuery};
 use tauri::AppHandle;
 
 // ---- Sessione ----
@@ -91,4 +93,16 @@ pub fn search_patients(query: PatientQuery) -> Result<PatientPage, String> {
 pub fn get_patient(id: i64) -> Result<PatientDetail, String> {
 	session::require_unlocked()?;
 	patients::get(id)
+}
+
+#[tauri::command]
+pub fn search_visits(query: VisitQuery) -> Result<VisitPage, String> {
+	session::require_unlocked()?;
+	visits::search(query)
+}
+
+#[tauri::command]
+pub fn get_visit(id: i64) -> Result<VisitDetail, String> {
+	session::require_unlocked()?;
+	visits::get(id)
 }

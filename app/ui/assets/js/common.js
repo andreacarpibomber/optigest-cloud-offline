@@ -34,6 +34,14 @@ function formatDate(value) {
 	return parts[2] + "/" + parts[1] + "/" + parts[0];
 }
 
+// Il DB salva "YYYY-MM-DD HH:MM:SS" in UTC: si mostra nell'ora locale.
+function formatDateTime(value) {
+	if (!value) { return ""; }
+	const date = new Date(value.replace(" ", "T") + "Z");
+	if (isNaN(date.getTime())) { return value; }
+	return date.toLocaleString("it-IT");
+}
+
 async function initPage() {
 	const page = document.body.dataset.page;
 	if (!page) { return; }

@@ -1,5 +1,6 @@
 // PIN di sblocco locale. Salvato solo come hash Argon2id nel keychain.
 
+use crate::logdb;
 use crate::secure_store;
 use crate::secure_store::err_to_string;
 use argon2::password_hash::rand_core::OsRng;
@@ -47,6 +48,7 @@ pub fn verify_pin(pin: String) -> Result<PinOutcome, String> {
 		// Troppi tentativi: sessione e PIN eliminati, serve un nuovo pair.
 		secure_store::clear_session();
 		FAILED_ATTEMPTS.store(0, Ordering::SeqCst);
+		let _ = logdb::write("PIN errato troppe volte: sessione eliminata");
 		return Ok(PinOutcome { status: "locked", remaining: 0 });
 	}
 	Ok(PinOutcome { status: "wrong", remaining: MAX_ATTEMPTS - failed })

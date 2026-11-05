@@ -5,6 +5,7 @@
 // Dopo lo sblocco la UI chiama connect_upstream (validazione token su OptiGest Cloud).
 
 use crate::globals;
+use crate::logdb;
 use crate::secure_store;
 use crate::secure_store::err_to_string;
 use serde::Serialize;
@@ -48,6 +49,7 @@ pub async fn connect_upstream() -> Result<UpstreamInfo, String> {
 	let status = response.status().as_u16();
 	if status == 401 {
 		secure_store::clear_session();
+		let _ = logdb::write("Token rifiutato dal cloud (401): sessione eliminata");
 		return Ok(UpstreamInfo { online: true, valid: false, name: String::new() });
 	}
 	if status != 200 {
@@ -64,6 +66,7 @@ pub async fn connect_upstream() -> Result<UpstreamInfo, String> {
 #[tauri::command]
 pub fn logout() {
 	secure_store::clear_session();
+	let _ = logdb::write("Logout");
 }
 
 // TODO: da allineare al contratto reale di testLogin.php (oggi si assume un JSON con "name").

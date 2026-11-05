@@ -8,7 +8,6 @@ const SERVICE: &str = "com.eosmedtech.optigest.offline";
 pub const KEY_TOKEN: &str = "login_token";
 pub const KEY_PIN_HASH: &str = "pin_hash";
 pub const KEY_NAME: &str = "display_name";
-pub const KEY_HOST: &str = "preferred_host";
 
 pub fn get(key: &str) -> Option<String> {
 	let entry = match Entry::new(SERVICE, key) {

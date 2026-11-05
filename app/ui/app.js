@@ -11,6 +11,7 @@ const HOST_LONG_PRESS_MS = 3000;
 
 let pinMode = "unlock";
 let hostTimer = null;
+let currentHost = "";
 
 function $(id) {
 	return document.getElementById(id);
@@ -34,6 +35,7 @@ async function start() {
 	$("splash-note").textContent = "";
 	$("btn-repair").classList.add("hidden");
 	const began = Date.now();
+	await loadHost();
 	const state = await invoke("boot_state");
 	const remaining = Math.max(0, MIN_SPLASH_MS - (Date.now() - began));
 	await sleep(remaining);
@@ -109,6 +111,7 @@ async function submitUnlock(pin) {
 }
 
 async function openHome() {
+	await loadHost();
 	show("view-home");
 	setStatus("", "Connessione...");
 	$("home-name").textContent = "";
@@ -122,7 +125,14 @@ async function openHome() {
 function setStatus(kind, label) {
 	const status = $("home-status");
 	status.className = "status " + kind;
-	status.querySelector("span").textContent = label;
+	status.querySelector("span").textContent = currentHost ? label + " · " + currentHost : label;
+}
+
+// Host corrente (da config.json): mostrato sullo splash e accanto allo stato in home.
+async function loadHost() {
+	const info = await invoke("get_hosts");
+	currentHost = info.current;
+	$("splash-host").textContent = currentHost;
 }
 
 async function logout() {
@@ -149,6 +159,7 @@ async function openHostPicker() {
 
 async function chooseHost(host) {
 	await invoke("set_host", { host: host });
+	await loadHost();
 	$("host-overlay").classList.add("hidden");
 }
 

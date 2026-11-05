@@ -1,6 +1,6 @@
 // Port di AppGlobal.swift: host ammessi, host preferito, endpoint.
 
-use crate::secure_store;
+use crate::config;
 use serde::Serialize;
 
 pub const HOSTS: [&str; 4] = [
@@ -31,11 +31,11 @@ pub fn set_host(host: String) -> Result<(), String> {
 	Ok(())
 }
 
+// Host da config.json; se non è tra quelli ammessi si usa il default.
 pub fn backend_domain() -> String {
-	match secure_store::get(secure_store::KEY_HOST) {
-		Some(host) if HOSTS.contains(&host.as_str()) => host,
-		_ => HOSTS[0].to_string(),
-	}
+	let host = config::host();
+	if HOSTS.contains(&host.as_str()) { return host; }
+	config::DEFAULT_HOST.to_string()
 }
 
 pub fn backend_host() -> String {
@@ -52,7 +52,7 @@ pub fn test_login_url() -> String {
 
 pub fn select_preferred_host(host: &str) -> bool {
 	if !HOSTS.contains(&host) { return false; }
-	secure_store::set(secure_store::KEY_HOST, host).is_ok()
+	config::set_host(host).is_ok()
 }
 
 fn host_to_string(host: &&str) -> String {

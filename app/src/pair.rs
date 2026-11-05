@@ -3,6 +3,7 @@
 // Il server risponde navigando verso app://loginTkn=... oppure app://host=...: qui vengono intercettati.
 
 use crate::globals;
+use crate::logdb;
 use crate::secure_store;
 use crate::secure_store::err_to_string;
 use tauri::{AppHandle, Emitter, Manager, Url, WebviewUrl, WebviewWindowBuilder};
@@ -47,6 +48,7 @@ fn allow_navigation(app: &AppHandle, target: &Url) -> bool {
 fn complete_pairing(app: &AppHandle, token: &str) {
 	if token.is_empty() { return; }
 	if secure_store::set(secure_store::KEY_TOKEN, token).is_err() { return; }
+	let _ = logdb::write("Associazione a OptiGest Cloud completata");
 	// Chiusura fuori dal callback di navigazione, per evitare deadlock del webview.
 	let handle = app.clone();
 	tauri::async_runtime::spawn(async move {

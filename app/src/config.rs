@@ -3,6 +3,7 @@
 // Se l'host cambia a runtime (selettore host o pair), la scelta è salvata in un config.json
 // nella cartella di configurazione dell'utente e ha la precedenza sul file incorporato.
 
+use crate::backup;
 use crate::secure_store::err_to_string;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -19,6 +20,9 @@ const BUNDLED: &str = include_str!("../config.json");
 struct Config {
 	#[serde(default = "default_host")]
 	host: String,
+	// numero di copie del DB locale da tenere (rotazione dei backup)
+	#[serde(default = "default_backup_keep")]
+	backup_keep: u32,
 }
 
 struct State {
@@ -55,6 +59,27 @@ pub fn set_host(host: &str) -> Result<(), String> {
 		None => return Err("Configurazione non inizializzata".to_string()),
 	};
 	state.config.host = host.to_string();
+	save(state)
+}
+
+pub fn backup_keep() -> u32 {
+	match lock().as_ref() {
+		Some(state) => state.config.backup_keep,
+		None => backup::DEFAULT_KEEP,
+	}
+}
+
+pub fn set_backup_keep(keep: u32) -> Result<(), String> {
+	let mut guard = lock();
+	let state = match guard.as_mut() {
+		Some(state) => state,
+		None => return Err("Configurazione non inizializzata".to_string()),
+	};
+	state.config.backup_keep = keep;
+	save(state)
+}
+
+fn save(state: &State) -> Result<(), String> {
 	let json = serde_json::to_string_pretty(&state.config).map_err(err_to_string)?;
 	fs::write(&state.override_path, json).map_err(err_to_string)
 }
@@ -67,8 +92,12 @@ fn read_file(path: &Path) -> Option<Config> {
 fn bundled() -> Config {
 	match serde_json::from_str(BUNDLED) {
 		Ok(config) => config,
-		Err(_) => Config { host: default_host() },
+		Err(_) => Config { host: default_host(), backup_keep: default_backup_keep() },
 	}
+}
+
+fn default_backup_keep() -> u32 {
+	backup::DEFAULT_KEEP
 }
 
 fn default_host() -> String {

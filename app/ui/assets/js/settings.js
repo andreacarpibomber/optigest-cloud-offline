@@ -9,6 +9,7 @@ function onReady() {
 	initTheme();
 	$("pin-form").addEventListener("submit", submitPinChange);
 	loadBiometric();
+	loadBackup();
 }
 
 // ---- Tema ----
@@ -88,4 +89,74 @@ async function toggleBiometric() {
 		$("biometric-status").textContent = String(error);
 	}
 	button.disabled = false;
+}
+
+// ---- Backup del DB locale ----
+
+async function loadBackup() {
+	$("backup-keep").addEventListener("change", changeBackupKeep);
+	$("btn-backup").addEventListener("click", runBackup);
+	try {
+		showBackup(await invoke("get_backup_status"));
+	} catch (error) {
+		backupMessage(String(error), true);
+	}
+}
+
+function showBackup(status) {
+	const select = $("backup-keep");
+	select.replaceChildren();
+	for (let n = status.min_keep; n <= status.max_keep; n++) {
+		const option = element("option", "", String(n));
+		option.value = String(n);
+		option.selected = n === status.keep;
+		select.append(option);
+	}
+	const error = $("backup-error");
+	error.hidden = !status.last_error;
+	error.textContent = status.last_error ? "Ultimo backup non riuscito: " + status.last_error : "";
+	const list = $("backup-list");
+	list.replaceChildren();
+	if (status.backups.length === 0) { list.append(element("li", "", "Nessun backup ancora.")); }
+	status.backups.forEach((backup) => {
+		list.append(element("li", "", formatDateTime(backup.created_on) + " · " + formatSize(backup.size_bytes)));
+	});
+}
+
+function formatSize(bytes) {
+	if (bytes >= 1048576) { return (bytes / 1048576).toFixed(1) + " MB"; }
+	return Math.max(1, Math.round(bytes / 1024)) + " KB";
+}
+
+async function changeBackupKeep() {
+	try {
+		showBackup(await invoke("set_backup_keep", { keep: Number($("backup-keep").value) }));
+		backupMessage("Impostazione salvata.", false);
+	} catch (error) {
+		backupMessage(String(error), true);
+	}
+}
+
+async function runBackup() {
+	const button = $("btn-backup");
+	button.disabled = true;
+	backupMessage("Backup in corso...", false);
+	try {
+		const outcome = await invoke("run_backup_now");
+		backupMessage(outcome.done ? "Backup eseguito." : outcome.message, false);
+	} catch (error) {
+		backupMessage(String(error), true);
+	}
+	try {
+		showBackup(await invoke("get_backup_status"));
+	} catch (error) {
+		backupMessage(String(error), true);
+	}
+	button.disabled = false;
+}
+
+function backupMessage(text, isError) {
+	const node = $("backup-message");
+	node.textContent = text;
+	node.classList.toggle("error", isError);
 }

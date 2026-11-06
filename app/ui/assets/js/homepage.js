@@ -16,6 +16,7 @@ function onReady(event) {
 	listen("sync-progress", onSyncProgress);
 	loadCounts();
 	showLastSync();
+	showBackupAlert();
 	if (info.online && !autoSyncDone()) { markAutoSyncDone(); autoSync(); }
 }
 
@@ -67,6 +68,7 @@ async function startSync() {
 		syncing = false;
 		$("sync-progress").textContent = summary(report);
 		showLastSync();
+		showBackupAlert();
 	} catch (error) {
 		syncing = false;
 		showSyncError(String(error));
@@ -109,6 +111,23 @@ function markAutoSyncDone() {
 	} catch (error) {
 		// senza storage la sincronizzazione automatica riparte a ogni apertura della home
 	}
+}
+
+// Avviso se l'ultimo backup del DB locale non è riuscito (resta finché non ne riesce uno).
+async function showBackupAlert() {
+	const alertBox = $("backup-alert");
+	let status;
+	try {
+		status = await invoke("get_backup_status");
+	} catch (error) {
+		return;
+	}
+	alertBox.hidden = !status.last_error;
+	if (!status.last_error) { return; }
+	alertBox.textContent = "Backup del database locale non riuscito: " + status.last_error + " ";
+	const link = element("a", "", "Impostazioni");
+	link.href = "settings.html";
+	alertBox.append(link);
 }
 
 function greeting() {

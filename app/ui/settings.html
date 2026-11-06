@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="it">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Impostazioni - OptiGest Cloud Offline</title>
+	<link rel="stylesheet" href="assets/css/app.css">
+	<script src="assets/js/theme.js"></script>
+</head>
+<body class="page" data-page="settings">
+	<header id="topbar"></header>
+	<main class="content">
+		<h1 class="page-title">Impostazioni</h1>
+
+		<section class="card-widget settings-section">
+			<h2 class="card-title">Tema</h2>
+			<p class="settings-hint">Aspetto dell'app. "Sistema" segue il tema del computer.</p>
+			<div id="theme-choice" class="segmented">
+				<button type="button" data-mode="system">Sistema</button>
+				<button type="button" data-mode="light">Chiaro</button>
+				<button type="button" data-mode="dark">Scuro</button>
+			</div>
+		</section>
+
+		<section class="card-widget settings-section">
+			<h2 class="card-title">Modifica PIN</h2>
+			<p class="settings-hint">Da 4 a 8 cifre. Serve il PIN attuale.</p>
+			<form id="pin-form" class="settings-form" autocomplete="off">
+				<input id="pin-current" type="password" inputmode="numeric" maxlength="8" placeholder="PIN attuale" autocomplete="off">
+				<input id="pin-new" type="password" inputmode="numeric" maxlength="8" placeholder="Nuovo PIN" autocomplete="off">
+				<input id="pin-repeat" type="password" inputmode="numeric" maxlength="8" placeholder="Ripeti il nuovo PIN" autocomplete="off">
+				<button class="btn-primary" type="submit">Cambia PIN</button>
+			</form>
+			<p id="pin-message" class="settings-message"></p>
+		</section>
+
+		<section id="biometric-section" class="card-widget settings-section" hidden>
+			<div class="settings-row">
+				<div>
+					<h2 class="card-title">Sblocco con impronta</h2>
+					<p id="biometric-status" class="settings-hint"></p>
+				</div>
+				<button id="btn-biometric" class="btn-primary" type="button"></button>
+			</div>
+		</section>
+	</main>
+	<script src="assets/js/common.js"></script>
+	<script src="assets/js/settings.js"></script>
+</body>
+</html>

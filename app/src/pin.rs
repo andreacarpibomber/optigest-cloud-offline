@@ -56,6 +56,16 @@ pub fn verify_pin(pin: String) -> Result<PinOutcome, String> {
 	Ok(PinOutcome { status: "wrong", remaining: MAX_ATTEMPTS - failed })
 }
 
+// Cambio PIN (app sbloccata): chiede il PIN attuale; gli errori contano come tentativi sbagliati.
+pub fn change_pin(current: String, new_pin: String) -> Result<PinOutcome, String> {
+	validate_format(&new_pin)?;
+	let outcome = verify_pin(current)?;
+	if outcome.status != "ok" { return Ok(outcome); }
+	set_pin(new_pin)?;
+	let _ = logdb::write("PIN modificato");
+	Ok(outcome)
+}
+
 fn validate_format(pin: &str) -> Result<(), String> {
 	let length = pin.chars().count();
 	if length < PIN_MIN_LEN || length > PIN_MAX_LEN { return Err(format!("Il PIN deve avere da {} a {} cifre", PIN_MIN_LEN, PIN_MAX_LEN)); }

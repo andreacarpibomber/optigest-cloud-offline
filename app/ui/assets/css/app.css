@@ -15,6 +15,21 @@
 	--backgroundHeavy: #999fc3;
 	--backgroundGrey: #e5e6f0;
 	--shadow: -8px 12px 18px 0 rgba(25, 42, 70, .13);
+	--inputBg: #efeff3;
+}
+
+/* Tema scuro: stesse variabili con colori invertiti (impostato da theme.js) */
+:root[data-theme="dark"] {
+	--primary: #e8ebf7;
+	--secundary: #1d2338;
+	--quaternary: #6f7fd0;
+	--quinquernary: #9fb0ee;
+	--background: #11152a;
+	--backgroundHeavy: #7a82a8;
+	--backgroundGrey: #272d49;
+	--shadow: -8px 12px 18px 0 rgba(0, 0, 0, .35);
+	--inputBg: #2a3150;
+	color-scheme: dark;
 }
 
 body.page {
@@ -107,7 +122,7 @@ a.card-widget:hover { transform: translateY(-2px); }
 .data-table .row-open { display: inline-flex; color: var(--primary); }
 .data-table .row-open svg { width: 20px; height: 20px; }
 
-.data-table input { width: 100%; box-sizing: border-box; padding: 10px 14px; border: 0; border-radius: 4px; background: #efeff3; color: var(--primary); font-family: var(--main-font); font-size: 14px; }
+.data-table input { width: 100%; box-sizing: border-box; padding: 10px 14px; border: 0; border-radius: 4px; background: var(--inputBg); color: var(--primary); font-family: var(--main-font); font-size: 14px; }
 .data-table input::placeholder { color: var(--backgroundHeavy); }
 .data-table input:focus { outline: 2px solid var(--quaternary); }
 
@@ -170,3 +185,21 @@ a.card-widget:hover { transform: translateY(-2px); }
 .refraction th:first-child { text-align: left; font-weight: 600; white-space: nowrap; }
 .refraction tr:first-child th { font-size: 12px; color: var(--quinquernary); }
 @media (max-width: 800px) { .eyes { grid-template-columns: 1fr; } .eye:first-child { border-right: 0; padding-right: 0; } }
+
+/* Impostazioni */
+.settings-section { margin-bottom: 24px; min-height: 0; padding: 26px 30px; border-radius: 24px; }
+.settings-section .card-title { font-size: 20px; margin-bottom: 4px; }
+.settings-hint { margin: 0 0 16px; font-size: 13px; color: var(--quinquernary); }
+.segmented { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--backgroundGrey); }
+.segmented button { padding: 8px 18px; border: 0; border-radius: 999px; background: none; color: var(--quinquernary); font-family: var(--main-font); font-size: 14px; font-weight: 600; cursor: pointer; }
+.segmented button.active { background: var(--primary); color: var(--secundary); }
+.settings-form { display: grid; gap: 12px; max-width: 360px; }
+.settings-form input { box-sizing: border-box; width: 100%; padding: 10px 14px; border: 0; border-radius: 8px; background: var(--inputBg); color: var(--primary); font-family: var(--main-font); font-size: 14px; }
+.settings-form input:focus { outline: 2px solid var(--quaternary); }
+.settings-form .btn-primary { justify-self: start; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+.settings-message { margin: 12px 0 0; min-height: 1.2em; font-size: 14px; color: var(--quinquernary); }
+.settings-message.error { color: #c0392b; }
+
+/* Il logo è blu scuro: nel tema scuro lo si rende chiaro */
+:root[data-theme="dark"] .topbar-logo img { filter: brightness(0) invert(1); }

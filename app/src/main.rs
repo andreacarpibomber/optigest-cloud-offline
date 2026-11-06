@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod api;
+mod biometric;
 mod config;
 mod db;
 #[cfg(debug_assertions)]
@@ -29,6 +30,10 @@ fn main() {
 			api::connect_upstream,
 			api::set_pin,
 			api::verify_pin,
+			api::change_pin,
+			api::biometric_status,
+			api::set_biometric,
+			api::unlock_biometric,
 			api::start_pair,
 			api::get_hosts,
 			api::set_host,

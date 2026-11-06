@@ -46,16 +46,215 @@ function addField(list, label, value) {
 }
 
 // I dati sono JSON; se non lo fossero si mostrano così come sono.
-function renderData(text) {
-	if (!text) { return; }
-	let shown = text;
-	try {
-		shown = JSON.stringify(JSON.parse(text), null, 2);
-	} catch (error) {
-		shown = text;
+// ---- Dati della visita (VData) ----
+// Struttura, etichette e opzioni sono in visit-schema.js; qui solo il disegno.
+
+// Legge un valore: prima annidato (a.b.c), poi con il nome piatto "a>b>c".
+function pick(data, path) {
+	const parts = path.split(">");
+	let node = data;
+	for (const part of parts) {
+		if (node === null || typeof node !== "object" || !(part in node)) { node = undefined; break; }
+		node = node[part];
 	}
-	$("visit-data").textContent = shown;
+	if (node === undefined && data && typeof data === "object" && path in data) { node = data[path]; }
+	if (node === undefined || node === null || typeof node === "object") { return ""; }
+	return decodeEntities(String(node)).trim();
+}
+
+// Nel cloud i testi sono salvati con entità HTML (es. &agrave;): si decodificano come testo, mai come HTML.
+function decodeEntities(text) {
+	if (text.indexOf("&") < 0) { return text; }
+	const area = document.createElement("textarea");
+	area.innerHTML = text;
+	return area.value;
+}
+
+function optionLabel(value, optionsName) {
+	if (!optionsName || !VISIT_OPTIONS[optionsName]) { return value; }
+	return VISIT_OPTIONS[optionsName][value] || value;
+}
+
+function hasContent(value) {
+	if (value === undefined || value === null) { return false; }
+	if (typeof value === "object") { return Object.values(value).some(hasContent); }
+	return String(value).trim() !== "";
+}
+
+function renderData(text) {
+	const container = $("visit-blocks");
+	container.replaceChildren();
+	if (!text) { return; }
+	let data;
+	try {
+		data = JSON.parse(text);
+	} catch (error) {
+		container.append(blockCard("Dati", [preText(text)]));
+		return;
+	}
+	if (!data || typeof data !== "object") { return; }
+	data = normalizeVisitData(data);
+
+	const used = new Set(VISIT_HIDDEN_KEYS);
+	VISIT_BLOCKS.forEach((block) => {
+		collectKeys(block).forEach((key) => used.add(key.split(">")[0]));
+		addNode(container, buildBlock(data, block));
+	});
+
+	// Qualsiasi chiave non prevista dallo schema: non si perde nulla.
+	const others = Object.keys(data).filter((key) => !used.has(key) && hasContent(data[key]));
+	if (others.length > 0) {
+		const rows = others.map((key) => fieldRow(key, typeof data[key] === "object" ? JSON.stringify(data[key]) : decodeEntities(String(data[key]))));
+		addNode(container, blockCard("Altri dati", rows));
+	}
+	$("visit-data").textContent = JSON.stringify(data, null, 2);
 	$("visit-data-box").hidden = false;
+}
+
+// Chiavi di primo livello toccate da un blocco (per capire cosa resta in "Altri dati").
+function collectKeys(block) {
+	const keys = [];
+	if (block.key) { keys.push(block.key); }
+	if (block.keys) { block.keys.forEach((key) => keys.push(key)); }
+	(block.fields || []).forEach(([key]) => { if (block.type === "single" || block.type === "texts") { keys.push(key); } });
+	(block.extra || []).forEach(([key]) => keys.push(key));
+	if (block.type === "ucva") { keys.push("ucva", "ucvan"); }
+	if (block.type === "refraction") {
+		VISIT_REFRACTION_ROWS.forEach(([key]) => keys.push(key));
+		VISIT_REFRACTION_EXTRAS.forEach(([key]) => keys.push(key));
+		VISIT_BINOCULAR.forEach(([key]) => keys.push(key));
+	}
+	return keys;
+}
+
+function buildBlock(data, block) {
+	if (block.type === "eyes") { return eyesBlock(data, block); }
+	if (block.type === "single") { return singleBlock(data, block); }
+	if (block.type === "texts") { return textsBlock(data, block); }
+	if (block.type === "ucva") { return ucvaBlock(data); }
+	if (block.type === "refraction") { return refractionBlock(data); }
+	return null;
+}
+
+function addNode(parent, node) { if (node) { parent.append(node); } }
+
+function blockCard(title, children) {
+	const card = element("section", "card-widget visit-block", "");
+	card.append(element("h2", "block-title", title));
+	children.forEach((child) => card.append(child));
+	return card;
+}
+
+function preText(value) { return element("p", "block-text", value); }
+
+function fieldRow(label, value) {
+	const row = element("div", "block-row", "");
+	row.append(element("span", "block-label", label));
+	row.append(element("span", "block-value", value));
+	return row;
+}
+
+function extraRows(data, extras) {
+	const rows = [];
+	(extras || []).forEach(([key, label, options]) => {
+		const value = pick(data, key);
+		if (value) { rows.push(fieldRow(label, optionLabel(value, options))); }
+	});
+	return rows;
+}
+
+function eyeColumns(buildColumn) {
+	const grid = element("div", "eyes", "");
+	let any = false;
+	VISIT_EYES.forEach(([key, label]) => {
+		const column = element("div", "eye", "");
+		column.append(element("div", "eye-label", label));
+		if (buildColumn(column, key)) { any = true; }
+		grid.append(column);
+	});
+	return any ? grid : null;
+}
+
+// Blocco a due colonne: OD a sinistra, OS a destra.
+function eyesBlock(data, block) {
+	const grid = eyeColumns((column, eye) => {
+		const eyeIndex = eye === "r" ? 0 : 1;
+		if (!block.fields) {
+			const path = block.keys ? block.keys[eyeIndex] : block.key + ">" + eye;
+			const value = pick(data, path);
+			if (!value) { return false; }
+			column.append(preText(optionLabel(value, block.options)));
+			return true;
+		}
+		let filled = false;
+		block.fields.forEach(([field, label, options]) => {
+			const value = pick(data, block.key + ">" + eye + ">" + field);
+			if (!value) { return; }
+			column.append(fieldRow(label, optionLabel(value, options)));
+			filled = true;
+		});
+		return filled;
+	});
+	const extras = extraRows(data, block.extra);
+	if (!grid && extras.length === 0) { return null; }
+	const children = [];
+	if (grid) { children.push(grid); }
+	extras.forEach((row) => children.push(row));
+	return blockCard(block.title, children);
+}
+
+function singleBlock(data, block) {
+	const rows = extraRows(data, block.fields);
+	return rows.length > 0 ? blockCard(block.title, rows) : null;
+}
+
+function textsBlock(data, block) {
+	const rows = block.fields.map(([key, label]) => [label, pick(data, key)]).filter(([, value]) => value);
+	if (rows.length === 0) { return null; }
+	const list = element("div", "text-fields", "");
+	rows.forEach(([label, value]) => {
+		list.append(element("div", "block-label", label));
+		list.append(element("p", "block-text", value));
+	});
+	return blockCard(block.title, [list]);
+}
+
+function ucvaBlock(data) {
+	const grid = eyeColumns((column, eye) => {
+		const far = pick(data, "ucva>" + eye);
+		const near = pick(data, "ucvan>" + eye);
+		if (far) { column.append(fieldRow("UCVA lontano", far)); }
+		if (near) { column.append(fieldRow("UCVA vicino", near)); }
+		return !!(far || near);
+	});
+	return grid ? blockCard("Visus naturale", [grid]) : null;
+}
+
+// Una tabella per occhio: righe = lenti/BCVA/..., colonne = VIS S C A ADDI ADD (solo quelle con dati).
+function refractionBlock(data) {
+	const grid = eyeColumns((column, eye) => {
+		const rows = VISIT_REFRACTION_ROWS.filter(([key]) => VISIT_REFRACTION_COLUMNS.some(([field]) => pick(data, key + ">" + eye + ">" + field)));
+		if (rows.length === 0) { return false; }
+		const columns = VISIT_REFRACTION_COLUMNS.filter(([field]) => rows.some(([key]) => pick(data, key + ">" + eye + ">" + field)));
+		const table = element("table", "refraction", "");
+		const head = element("tr", "", "");
+		head.append(element("th", "", ""));
+		columns.forEach(([, label]) => head.append(element("th", "", label)));
+		table.append(head);
+		rows.forEach(([key, label]) => {
+			const line = element("tr", "", "");
+			line.append(element("th", "", label));
+			columns.forEach(([field]) => line.append(element("td", "", pick(data, key + ">" + eye + ">" + field))));
+			table.append(line);
+		});
+		column.append(table);
+		return true;
+	});
+	const children = [];
+	if (grid) { children.push(grid); }
+	extraRows(data, VISIT_BINOCULAR).forEach((row) => children.push(row));
+	extraRows(data, VISIT_REFRACTION_EXTRAS).forEach((row) => children.push(row));
+	return children.length > 0 ? blockCard("Refrazione", children) : null;
 }
 
 function showError(message) {

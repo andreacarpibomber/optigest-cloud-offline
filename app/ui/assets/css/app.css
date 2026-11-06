@@ -151,3 +151,22 @@ a.card-widget:hover { transform: translateY(-2px); }
 .footer-meta { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
 .footer-meta span { display: inline-flex; align-items: center; gap: 6px; }
 .footer-meta svg { width: 14px; height: 14px; }
+
+/* Scheda visita: blocchi OD | OS */
+.visit-blocks { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+.visit-block { display: block; min-height: 0; padding: 22px 30px; border-radius: 24px; }
+.block-title { margin: 0 0 12px; font-size: 18px; font-weight: 600; color: var(--primary); }
+.eyes { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.eye { min-width: 0; }
+.eye-label { font-size: 13px; font-weight: 800; letter-spacing: .06em; color: var(--quinquernary); margin-bottom: 6px; }
+.eye:first-child { padding-right: 12px; border-right: 1px solid var(--quaternary); }
+.block-row { display: flex; gap: 12px; padding: 3px 0; }
+.block-label { font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--quinquernary); min-width: 140px; }
+.block-value { word-break: break-word; }
+.block-text { margin: 0 0 12px; white-space: pre-wrap; word-break: break-word; }
+.text-fields .block-label { display: block; margin-top: 4px; }
+.refraction { border-collapse: collapse; width: 100%; font-size: 14px; }
+.refraction th, .refraction td { padding: 4px 8px; text-align: right; border-bottom: 1px solid var(--background); }
+.refraction th:first-child { text-align: left; font-weight: 600; white-space: nowrap; }
+.refraction tr:first-child th { font-size: 12px; color: var(--quinquernary); }
+@media (max-width: 800px) { .eyes { grid-template-columns: 1fr; } .eye:first-child { border-right: 0; padding-right: 0; } }

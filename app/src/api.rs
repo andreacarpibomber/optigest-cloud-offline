@@ -1,12 +1,13 @@
 // Router unico delle API: tutti i comandi che la UI chiama con invoke("nome", {...}) stanno qui.
 // I moduli (session, pin, patients, ...) contengono solo la logica; qui si decide cosa è esposto e a quali condizioni.
 //
-//   Pubbliche (anche con app bloccata): boot_state, is_unlocked, set_pin, verify_pin, start_pair, get_hosts, set_host, open_legal_page, logout
+//   Pubbliche (anche con app bloccata): boot_state, is_unlocked, set_pin, verify_pin, biometric_status, unlock_biometric, start_pair, get_hosts, set_host, open_legal_page, logout
 //   Protette (richiedono lo sblocco con PIN): connect_upstream, get_counts, list_logs,
 //   search_patients, get_patient, search_visits, get_visit, sync_now, get_sync_status
 //
 // Per aggiungere un'API: funzione qui con #[tauri::command], poi la riga in generate_handler! di main.rs.
 
+use crate::biometric::{self, BiometricStatus};
 use crate::external;
 use crate::globals::{self, HostsInfo};
 use crate::logdb::{self, LogEntry};
@@ -50,8 +51,30 @@ pub fn set_pin(pin: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn change_pin(current: String, new_pin: String) -> Result<PinOutcome, String> {
+	session::require_unlocked()?;
+	pin::change_pin(current, new_pin)
+}
+
+#[tauri::command]
 pub fn verify_pin(pin: String) -> Result<PinOutcome, String> {
 	pin::verify_pin(pin)
+}
+
+// Impronta (pubbliche per la schermata del PIN; l'attivazione richiede l'app sbloccata)
+#[tauri::command]
+pub fn biometric_status() -> BiometricStatus {
+	biometric::status()
+}
+
+#[tauri::command]
+pub async fn set_biometric(enabled: bool) -> Result<(), String> {
+	biometric::set_enabled(enabled).await
+}
+
+#[tauri::command]
+pub async fn unlock_biometric() -> Result<bool, String> {
+	biometric::unlock().await
 }
 
 #[tauri::command]

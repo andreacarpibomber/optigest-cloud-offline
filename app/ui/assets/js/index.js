@@ -11,6 +11,9 @@ const HOME_PAGE = "homepage.html";
 
 let pinMode = "unlock";
 let hostTimer = null;
+// la richiesta dell'impronta parte da sola una volta per apertura; poi solo dal pulsante
+let biometricTried = false;
+let biometricEnabled = false;
 
 function show(viewId) {
 	document.querySelectorAll(".view").forEach(hideView);
@@ -64,6 +67,40 @@ function showPin(mode) {
 		$("pin-title").textContent = "Inserisci il PIN";
 		$("pin-confirm").classList.add("hidden");
 	}
+	$("pin-input").focus();
+	$("btn-biometric").classList.add("hidden");
+	if (mode === "unlock") { offerBiometric(); }
+}
+
+// Icona visibile se il computer ha un lettore. Se l'impronta è attiva la richiesta parte da sola
+// (una volta per apertura); se fallisce o viene annullata resta il PIN.
+async function offerBiometric() {
+	let status;
+	try {
+		status = await invoke("biometric_status");
+	} catch (error) {
+		console.error("biometric_status", error);
+		return;
+	}
+	biometricEnabled = status.enabled;
+	if (!status.available) { return; }
+	$("btn-biometric").classList.remove("hidden");
+	if (status.enabled && !biometricTried) { biometricTried = true; tryBiometric(); }
+}
+
+async function tryBiometric() {
+	if (!biometricEnabled) {
+		$("pin-error").textContent = "Sblocca con il PIN, poi attiva l'impronta dalla home.";
+		return;
+	}
+	let unlocked = false;
+	try {
+		unlocked = await invoke("unlock_biometric");
+	} catch (error) {
+		$("pin-error").textContent = String(error);
+		return;
+	}
+	if (unlocked) { openHome(); return; }
 	$("pin-input").focus();
 }
 
@@ -145,6 +182,7 @@ function logoPressEnd() {
 
 $("pin-form").addEventListener("submit", submitPin);
 $("btn-repair").addEventListener("click", startPair);
+$("btn-biometric").addEventListener("click", tryBiometric);
 $("host-cancel").addEventListener("click", function () { $("host-overlay").classList.add("hidden"); });
 $("logo").addEventListener("pointerdown", logoPressStart);
 $("logo").addEventListener("pointerup", logoPressEnd);

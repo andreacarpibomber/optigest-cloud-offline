@@ -20,6 +20,7 @@ const NAV = [
 	{ page: "homepage", label: "Home", href: "homepage.html" },
 	{ page: "patients", label: "Pazienti", href: "patients.html" },
 	{ page: "visits", label: "Visite", href: "visits.html" },
+	{ page: "settings", label: "Impostazioni", href: "settings.html" },
 ];
 
 function $(id) {

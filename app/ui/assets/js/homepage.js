@@ -1,4 +1,4 @@
-// Homepage: saluto, widget con i conteggi (DB locale), sincronizzazione con il cloud
+// Homepage: saluto, widget con i conteggi (DB locale), sincronizzazione con il cloud.
 
 const listen = window.__TAURI__.event.listen;
 const AUTO_SYNC_KEY = "optigest.autoSyncDone";
@@ -16,7 +16,18 @@ function onReady(event) {
 	listen("sync-progress", onSyncProgress);
 	loadCounts();
 	showLastSync();
-	if (info.online && !autoSyncDone()) { markAutoSyncDone(); startSync(); }
+	if (info.online && !autoSyncDone()) { markAutoSyncDone(); autoSync(); }
+}
+
+// Sync automatico all'apertura: solo se l'ultimo è abbastanza vecchio (il limite è applicato anche dal backend).
+async function autoSync() {
+	try {
+		const status = await invoke("get_sync_status");
+		if (status.wait_secs > 0 || status.running) { return; }
+	} catch (error) {
+		return;
+	}
+	startSync();
 }
 
 // Conteggi dei record non eliminati: funzionano anche offline.

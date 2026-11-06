@@ -20,6 +20,8 @@
 body.page {
 	margin: 0;
 	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
 	background: var(--background);
 	color: var(--primary);
 	font-family: var(--main-font);
@@ -42,7 +44,8 @@ body.page {
 }
 
 .topbar-org { font-size: 20px; font-weight: 800; }
-.topbar-user { font-size: 14px; font-weight: 600; color: var(--quinquernary); }
+.topbar-logo { display: flex; align-items: center; }
+.topbar-logo img { display: block; height: 44px; width: auto; }
 .topbar-spacer { flex: 1; }
 
 .topbar-nav { display: flex; gap: 6px; }
@@ -58,7 +61,7 @@ body.page {
 .topbar .link { padding: 0; border: 0; background: none; font-family: var(--main-font); font-size: 13px; font-weight: 600; color: var(--quinquernary); cursor: pointer; }
 
 /* Contenuto */
-.content { max-width: 1100px; margin: 0 auto; padding: 36px 32px 40px; }
+.content { width: 100%; box-sizing: border-box; max-width: 1100px; margin: 0 auto; padding: 36px 32px 40px; }
 .greeting,
 .page-title { margin: 0 0 28px; font-size: 30px; font-weight: 800; line-height: 1.25; }
 .back { display: inline-block; margin-bottom: 14px; font-size: 13px; font-weight: 600; color: var(--quinquernary); }
@@ -139,3 +142,31 @@ a.card-widget:hover { transform: translateY(-2px); }
 .sync-progress { color: var(--primary); font-weight: 600; }
 .btn-primary { padding: 12px 24px; border: 0; border-radius: 999px; background: var(--primary); color: var(--secundary); font-family: var(--main-font); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .btn-primary:disabled { opacity: .5; cursor: default; }
+
+/* Footer comune */
+.page-footer { margin-top: auto; padding: 24px 32px; display: flex; flex-direction: column; align-items: center; gap: 10px; font-size: 13px; color: var(--quinquernary); text-align: center; }
+.footer-links { display: flex; gap: 20px; }
+.footer-links a { font-weight: 600; cursor: pointer; }
+.footer-links a:hover { text-decoration: underline; }
+.footer-meta { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+.footer-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.footer-meta svg { width: 14px; height: 14px; }
+
+/* Scheda visita: blocchi OD | OS */
+.visit-blocks { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+.visit-block { display: block; min-height: 0; padding: 22px 30px; border-radius: 24px; }
+.block-title { margin: 0 0 12px; font-size: 18px; font-weight: 600; color: var(--primary); }
+.eyes { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.eye { min-width: 0; }
+.eye-label { font-size: 13px; font-weight: 800; letter-spacing: .06em; color: var(--quinquernary); margin-bottom: 6px; }
+.eye:first-child { padding-right: 12px; border-right: 1px solid var(--quaternary); }
+.block-row { display: flex; gap: 12px; padding: 3px 0; }
+.block-label { font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--quinquernary); min-width: 140px; }
+.block-value { word-break: break-word; }
+.block-text { margin: 0 0 12px; white-space: pre-wrap; word-break: break-word; }
+.text-fields .block-label { display: block; margin-top: 4px; }
+.refraction { border-collapse: collapse; width: 100%; font-size: 14px; }
+.refraction th, .refraction td { padding: 4px 8px; text-align: right; border-bottom: 1px solid var(--background); }
+.refraction th:first-child { text-align: left; font-weight: 600; white-space: nowrap; }
+.refraction tr:first-child th { font-size: 12px; color: var(--quinquernary); }
+@media (max-width: 800px) { .eyes { grid-template-columns: 1fr; } .eye:first-child { border-right: 0; padding-right: 0; } }

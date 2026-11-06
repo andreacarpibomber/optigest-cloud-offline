@@ -29,7 +29,7 @@ pub const SESSION_EXPIRED: &str = "SESSION_EXPIRED";
 const PROTOCOL_VERSION: u32 = 1;
 const REQUEST_TIMEOUT_SECS: u64 = 60;
 const MAX_BATCH: u32 = 2000;
-const SAFETY_WINDOW_SECS: u32 = 600;
+const SAFETY_WINDOW_SECS: u32 = 60;
 
 const STATE_EPOCH: &str = "epoch";
 const STATE_FULL_SYNC: &str = "full_sync";
@@ -110,6 +110,8 @@ pub struct SyncStatus {
 	last_sync_on: Option<String>,
 	full_pending: bool,
 	running: bool,
+	// secondi da attendere prima di poter sincronizzare di nuovo (0 = subito)
+	wait_secs: i64,
 }
 
 pub fn status() -> Result<SyncStatus, String> {
@@ -117,10 +119,31 @@ pub fn status() -> Result<SyncStatus, String> {
 	let connection = db::get(&guard)?;
 	let last_sync_on = get_state(connection, STATE_LAST_SYNC)?;
 	let full_pending = get_state(connection, STATE_FULL_SYNC)?.as_deref() == Some(FULL_PENDING);
-	Ok(SyncStatus { last_sync_on, full_pending, running: RUNNING.load(Ordering::SeqCst) })
+	let wait_secs = wait_seconds(connection, full_pending)?;
+	Ok(SyncStatus { last_sync_on, full_pending, running: RUNNING.load(Ordering::SeqCst), wait_secs })
+}
+
+// Secondi mancanti al prossimo sync consentito, in base all'ultimo riuscito.
+fn wait_seconds(connection: &Connection, full_pending: bool) -> Result<i64, String> {
+	if full_pending { return Ok(0); }
+	let elapsed: Option<i64> = connection
+		.query_row(
+			"SELECT CAST(strftime('%s','now') AS INTEGER) - CAST(strftime('%s', Value) AS INTEGER) FROM SyncState WHERE Name = ?1",
+			params![STATE_LAST_SYNC],
+			|row| row.get(0),
+		)
+		.optional()
+		.map_err(err_to_string)?
+		.flatten();
+	match elapsed {
+		Some(seconds) if seconds >= 0 && seconds < globals::SYNC_MIN_INTERVAL_SECS => Ok(globals::SYNC_MIN_INTERVAL_SECS - seconds),
+		_ => Ok(0),
+	}
 }
 
 pub async fn run(on_progress: &(dyn Fn(Progress) + Send + Sync)) -> Result<SyncReport, String> {
+	let wait = status()?.wait_secs;
+	if wait > 0 { return Err(format!("Sincronizzazione già eseguita da poco: riprova tra {}", describe_wait(wait))); }
 	if RUNNING.swap(true, Ordering::SeqCst) { return Err("Sincronizzazione già in corso".to_string()); }
 	let result = run_all(on_progress).await;
 	RUNNING.store(false, Ordering::SeqCst);
@@ -290,6 +313,11 @@ fn finish_full_sync() -> Result<u64, String> {
 	set_state(&transaction, STATE_FULL_SYNC, FULL_DONE)?;
 	transaction.commit().map_err(err_to_string)?;
 	Ok(removed)
+}
+
+fn describe_wait(seconds: i64) -> String {
+	if seconds >= 60 { return format!("{} min", (seconds + 59) / 60); }
+	format!("{} s", seconds)
 }
 
 fn mark_synced() -> Result<(), String> {

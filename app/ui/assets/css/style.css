@@ -1,10 +1,11 @@
 :root {
-	--bg: #14171c;
+	--bg: #f6f8ff;
 	--fg: #f2f5f7;
 	--muted: #8a949e;
-	--accent: #5bbad5;
+	--accent: #628df6;
 	--danger: #ef6b6b;
 	--ok: #5bd58a;
+	--primary: #1c2541;
 }
 
 * { box-sizing: border-box; }
@@ -34,9 +35,9 @@ html, body {
 .logo { width: 260px; max-width: 70vw; user-select: none; -webkit-user-drag: none; }
 .logo.small { width: 180px; margin-bottom: 16px; }
 
-h1 { margin: 24px 0 0; font-size: 34px; font-weight: 600; }
-h2 { margin: 0 0 16px; font-size: 22px; font-weight: 500; }
-.company { margin: 0; font-size: 18px; color: var(--fg); }
+h1 { margin: 24px 0 0; font-size: 34px; font-weight: 600; color: var(--primary); }
+h2 { margin: 0 0 16px; font-size: 22px; font-weight: 500; color: var(--primary); }
+.company { margin: 0; font-size: 18px; color: var(--primary); }
 .site { margin: 0; font-size: 14px; color: var(--accent); }
 .note { min-height: 20px; margin: 12px 0 0; font-size: 14px; color: var(--muted); }
 
@@ -44,7 +45,7 @@ h2 { margin: 0 0 16px; font-size: 22px; font-weight: 500; }
 	width: 200px;
 	height: 3px;
 	margin-top: 28px;
-	background: #262b33;
+	background: var(--bg);
 	border-radius: 2px;
 	overflow: hidden;
 }
@@ -132,3 +133,24 @@ button.link {
 	color: var(--fg);
 	background: #262b33;
 }
+
+
+.copyright {
+	position: fixed;
+	bottom: 8px;
+	left: 0;
+	right: 0;
+	text-align: center;
+	font-size: 12px;
+	color: #7d8395 !important;
+	padding-bottom: 2em;
+}
+.copyright a {
+	color: inherit;
+	opacity: .6;
+	text-decoration: none;
+}
+
+.topbar-logo { display: flex; align-items: center; }
+.topbar-logo img { display: block; height: 32px; width: auto; }
+

@@ -14,6 +14,9 @@ pub const HOSTS: [&str; 4] = [
 // Le risposte di sync contengono dati dei pazienti: lasciare false salvo debug mirato.
 pub const HTTP_LOG_ENABLED: bool = false;
 
+// Pagine del sito aperte dal footer (solo queste: il nome arriva dalla pagina web)
+const LEGAL_PAGES: [&str; 3] = ["security", "legal", "privacy"];
+
 const LOGIN_SIGNUP_ENDPOINT: &str = "/app/login.php?setup=workstation&api=app";
 const TEST_LOGIN_ENDPOINT: &str = "/app/php/testLogin.php?app=true";
 const SYNC_ENDPOINT: &str = "/api/syncData.php";
@@ -55,6 +58,11 @@ pub fn test_login_url() -> String {
 
 pub fn sync_url() -> String {
 	format!("{}{}", backend_host(), SYNC_ENDPOINT)
+}
+
+pub fn legal_url(page: &str) -> Option<String> {
+	if !LEGAL_PAGES.contains(&page) { return None; }
+	Some(format!("{}/{}?externallink=true", backend_host(), page))
 }
 
 pub fn select_preferred_host(host: &str) -> bool {

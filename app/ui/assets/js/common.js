@@ -7,6 +7,15 @@ const invoke = window.__TAURI__.core.invoke;
 const SESSION_KEY = "optigest.session";
 const LOGIN_PAGE = "index.html";
 
+const FOOTER_LINKS = [
+	{ page: "security", label: "Sicurezza" },
+	{ page: "legal", label: "Legale" },
+	{ page: "privacy", label: "Privacy" },
+];
+
+const ICON_LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const ICON_COPYRIGHT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5a3 3 0 1 0 0 5"/></svg>';
+
 const NAV = [
 	{ page: "homepage", label: "Home", href: "homepage.html" },
 	{ page: "patients", label: "Pazienti", href: "patients.html" },
@@ -51,6 +60,7 @@ async function initPage() {
 	if (!info) { return; }
 	const host = await invoke("get_hosts");
 	renderTopbar(page, info, host.current);
+	renderFooter(info.online);
 	document.dispatchEvent(new CustomEvent("page-ready", { detail: info }));
 }
 
@@ -113,12 +123,58 @@ function renderTopbar(page, info, host) {
 	if (!bar) { return; }
 	bar.classList.add("topbar");
 	bar.replaceChildren();
-	bar.append(element("span", "topbar-org", info.org || "Studio"));
-	bar.append(element("span", "topbar-user", info.name || "Utente"));
+	bar.append(buildLogo());
 	bar.append(buildNav(page));
 	bar.append(element("span", "topbar-spacer", ""));
 	bar.append(buildStatus(info.online, host));
 	bar.append(buildLogoutButton());
+}
+
+// Footer comune a tutte le pagine interne: link legali (aperti nel browser di sistema), stato connessione, copyright.
+function renderFooter(online) {
+	if ($("footer")) { return; }
+	const footer = document.createElement("footer");
+	footer.id = "footer";
+	footer.className = "page-footer";
+	footer.append(buildFooterLinks());
+	const meta = element("div", "footer-meta", "");
+	meta.append(buildFooterNote(ICON_LOCK, online ? "Connessione sicura" : "Modalità offline: dati locali"));
+	meta.append(buildFooterNote(ICON_COPYRIGHT, "EosMedTech Srl"));
+	footer.append(meta);
+	document.body.append(footer);
+}
+
+function buildFooterLinks() {
+	const links = element("div", "footer-links", "");
+	for (const item of FOOTER_LINKS) {
+		const link = element("a", "", item.label);
+		link.href = "#";
+		link.addEventListener("click", function (event) {
+			event.preventDefault();
+			invoke("open_legal_page", { page: item.page }).catch(function () { /* nessun browser disponibile: niente da fare */ });
+		});
+		links.append(link);
+	}
+	return links;
+}
+
+// Le icone sono SVG fissi del codice (niente font esterni: l'app funziona anche offline).
+function buildFooterNote(icon, text) {
+	const note = document.createElement("span");
+	note.innerHTML = icon;
+	note.append(text);
+	return note;
+}
+
+function buildLogo() {
+	const link = element("a", "topbar-logo", "");
+	link.href = "homepage.html";
+	const image = document.createElement("img");
+	image.src = "assets/img/logo.svg";
+	image.alt = "EosMedTech";
+	image.height = 44;
+	link.append(image);
+	return link;
 }
 
 function buildNav(page) {

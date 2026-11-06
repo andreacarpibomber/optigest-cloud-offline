@@ -1,12 +1,13 @@
 // Router unico delle API: tutti i comandi che la UI chiama con invoke("nome", {...}) stanno qui.
 // I moduli (session, pin, patients, ...) contengono solo la logica; qui si decide cosa è esposto e a quali condizioni.
 //
-//   Pubbliche (anche con app bloccata): boot_state, is_unlocked, set_pin, verify_pin, start_pair, get_hosts, set_host, logout
+//   Pubbliche (anche con app bloccata): boot_state, is_unlocked, set_pin, verify_pin, start_pair, get_hosts, set_host, open_legal_page, logout
 //   Protette (richiedono lo sblocco con PIN): connect_upstream, get_counts, list_logs,
 //   search_patients, get_patient, search_visits, get_visit, sync_now, get_sync_status
 //
 // Per aggiungere un'API: funzione qui con #[tauri::command], poi la riga in generate_handler! di main.rs.
 
+use crate::external;
 use crate::globals::{self, HostsInfo};
 use crate::logdb::{self, LogEntry};
 use crate::pair;
@@ -63,6 +64,13 @@ pub async fn start_pair(app: AppHandle) -> Result<(), String> {
 #[tauri::command]
 pub fn get_hosts() -> HostsInfo {
 	globals::get_hosts()
+}
+
+// Apre nel browser di sistema una pagina del sito (security, legal, privacy).
+#[tauri::command]
+pub fn open_legal_page(page: String) -> Result<(), String> {
+	let url = globals::legal_url(&page).ok_or("Pagina non valida")?;
+	external::open(&url)
 }
 
 #[tauri::command]

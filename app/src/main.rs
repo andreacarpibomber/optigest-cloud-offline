@@ -5,6 +5,7 @@ mod config;
 mod db;
 #[cfg(debug_assertions)]
 mod dev_store;
+mod external;
 mod globals;
 mod httplog;
 mod logdb;
@@ -31,6 +32,7 @@ fn main() {
 			api::start_pair,
 			api::get_hosts,
 			api::set_host,
+				api::open_legal_page,
 			api::get_counts,
 			api::list_logs,
 			api::search_patients,

@@ -7,14 +7,12 @@
 	<link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
-
-	<!-- Splash di benvenuto (schema su carta: logo + Benvenuto/a) -->
 	<section id="view-splash" class="view active">
 		<img id="logo" class="logo" src="assets/img/logo.svg" alt="EosMedTech">
-		<h1>Benvenuto/a</h1>
-		<p class="company">EosMedTech Srl</p>
-		<p id="splash-host" class="site"></p>
+		
+		<div style="padding-top: 2em"></div>
 		<div class="loader"><span></span></div>
+		<p id="splash-host" class="site"></p>
 		<p id="splash-note" class="note"></p>
 		<button id="btn-repair" class="link hidden" type="button">Riapri la finestra di accesso</button>
 	</section>
@@ -30,6 +28,10 @@
 		</form>
 		<p id="pin-error" class="error"></p>
 	</section>
+
+	<footer class="copyright">
+		<a href="https://www.eosmedtech.com/" target="_blank" rel="noopener">Copyright &copy; EosMedTech Srl</a>
+	</footer>
 
 	<!-- Selettore host (long press 3s sul logo dello splash) -->
 	<div id="host-overlay" class="overlay hidden">

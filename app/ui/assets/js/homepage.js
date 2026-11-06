@@ -1,4 +1,4 @@
-// Homepage: saluto, widget con i conteggi (DB locale), sincronizzazione con il cloud e risposta del login (debug).
+// Homepage: saluto, widget con i conteggi (DB locale), sincronizzazione con il cloud
 
 const listen = window.__TAURI__.event.listen;
 const AUTO_SYNC_KEY = "optigest.autoSyncDone";
@@ -12,7 +12,6 @@ document.addEventListener("page-ready", onReady);
 function onReady(event) {
 	const info = event.detail;
 	$("home-greeting").textContent = greeting() + " " + (info.title || "Dott.") + " " + info.name;
-	$("home-raw").textContent = info.raw || "(nessuna risposta: offline, mostrati i dati in cache)";
 	$("btn-sync").addEventListener("click", startSync);
 	listen("sync-progress", onSyncProgress);
 	loadCounts();

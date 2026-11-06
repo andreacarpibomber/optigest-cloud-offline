@@ -7,6 +7,7 @@
 //
 // Per aggiungere un'API: funzione qui con #[tauri::command], poi la riga in generate_handler! di main.rs.
 
+use crate::backup::{self, BackupOutcome, BackupStatus};
 use crate::biometric::{self, BiometricStatus};
 use crate::external;
 use crate::globals::{self, HostsInfo};
@@ -152,4 +153,25 @@ pub async fn sync_now(app: AppHandle) -> Result<SyncReport, String> {
 pub fn get_sync_status() -> Result<SyncStatus, String> {
 	session::require_unlocked()?;
 	sync::status()
+}
+
+// ---- Backup del DB locale (protette) ----
+
+#[tauri::command]
+pub fn get_backup_status() -> Result<BackupStatus, String> {
+	session::require_unlocked()?;
+	backup::status()
+}
+
+#[tauri::command]
+pub fn set_backup_keep(keep: u32) -> Result<BackupStatus, String> {
+	session::require_unlocked()?;
+	backup::set_keep(keep)
+}
+
+// Backup manuale. Il lavoro (integrità, copia, verifica) gira fuori dal thread dell'interfaccia.
+#[tauri::command]
+pub async fn run_backup_now() -> Result<BackupOutcome, String> {
+	session::require_unlocked()?;
+	tauri::async_runtime::spawn_blocking(|| backup::run(true)).await.map_err(|error| error.to_string())?
 }

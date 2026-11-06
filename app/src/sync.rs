@@ -11,6 +11,7 @@
 // Dopo: pull incrementale dal cursore, riletto con una finestra di sicurezza (rewind_s) sulla prima pagina.
 // Ogni pagina si applica in una transazione insieme al suo cursore: un'interruzione riparte dall'ultima pagina.
 
+use crate::backup;
 use crate::db;
 use crate::globals;
 use crate::httplog;
@@ -123,6 +124,14 @@ pub fn status() -> Result<SyncStatus, String> {
 	Ok(SyncStatus { last_sync_on, full_pending, running: RUNNING.load(Ordering::SeqCst), wait_secs })
 }
 
+// Motivo per cui ora non conviene fare un backup del DB (sync in corso o scarico completo a metà).
+pub fn blocks_backup() -> Result<Option<String>, String> {
+	let status = status()?;
+	if status.running { return Ok(Some("Sincronizzazione in corso: backup rimandato".to_string())); }
+	if status.full_pending { return Ok(Some("Scarico completo non terminato: backup rimandato".to_string())); }
+	Ok(None)
+}
+
 // Secondi mancanti al prossimo sync consentito, in base all'ultimo riuscito.
 fn wait_seconds(connection: &Connection, full_pending: bool) -> Result<i64, String> {
 	if full_pending { return Ok(0); }
@@ -147,6 +156,8 @@ pub async fn run(on_progress: &(dyn Fn(Progress) + Send + Sync)) -> Result<SyncR
 	if RUNNING.swap(true, Ordering::SeqCst) { return Err("Sincronizzazione già in corso".to_string()); }
 	let result = run_all(on_progress).await;
 	RUNNING.store(false, Ordering::SeqCst);
+	// Dopo una sincronizzazione riuscita: backup del DB (se integro, al massimo uno al giorno). Gli errori restano visibili all'utente.
+	if result.is_ok() { let _ = tauri::async_runtime::spawn_blocking(|| backup::run(false)).await; }
 	log_result(&result);
 	result
 }

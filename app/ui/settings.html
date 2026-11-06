@@ -34,6 +34,19 @@
 			<p id="pin-message" class="settings-message"></p>
 		</section>
 
+		<section class="card-widget settings-section">
+			<h2 class="card-title">Backup del database locale</h2>
+			<p class="settings-hint">Copia di sicurezza dei dati locali, fatta solo se il database è integro. Dopo una sincronizzazione riuscita, al massimo una al giorno. Le copie più vecchie vengono eliminate.</p>
+			<div class="settings-row">
+				<label for="backup-keep" class="settings-hint">Copie da conservare</label>
+				<select id="backup-keep" class="settings-select"></select>
+			</div>
+			<p id="backup-error" class="settings-message error" hidden></p>
+			<ul id="backup-list" class="backup-list"></ul>
+			<button id="btn-backup" class="btn-primary" type="button">Esegui backup ora</button>
+			<p id="backup-message" class="settings-message"></p>
+		</section>
+
 		<section id="biometric-section" class="card-widget settings-section" hidden>
 			<div class="settings-row">
 				<div>

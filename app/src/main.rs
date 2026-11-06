@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod api;
+mod backup;
 mod biometric;
 mod config;
 mod db;
@@ -46,6 +47,9 @@ fn main() {
 			api::get_visit,
 			api::sync_now,
 			api::get_sync_status,
+			api::get_backup_status,
+			api::set_backup_keep,
+			api::run_backup_now,
 		])
 		.run(tauri::generate_context!())
 		.expect("errore durante l'avvio di OptiGest Cloud Offline");
@@ -55,6 +59,7 @@ fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 	secure_store::init(app.handle())?;
 	config::init(app.handle())?;
 	db::init(app.handle())?;
+	backup::init(app.handle())?;
 	let _ = logdb::write(&format!("Avvio applicazione (host: {})", globals::backend_domain()));
 	Ok(())
 }

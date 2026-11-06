@@ -203,3 +203,10 @@ a.card-widget:hover { transform: translateY(-2px); }
 
 /* Il logo è blu scuro: nel tema scuro lo si rende chiaro */
 :root[data-theme="dark"] .topbar-logo img { filter: brightness(0) invert(1); }
+
+/* Backup */
+.settings-select { padding: 8px 14px; border: 0; border-radius: 8px; background: var(--inputBg); color: var(--primary); font-family: var(--main-font); font-size: 14px; }
+.backup-list { margin: 14px 0 16px; padding: 0; list-style: none; font-size: 14px; }
+.backup-list li { padding: 6px 0; border-bottom: 1px solid var(--backgroundGrey); }
+.backup-alert { margin: 0 0 20px; padding: 14px 18px; border-radius: 14px; background: rgba(192, 57, 43, .12); color: #c0392b; font-size: 14px; }
+.backup-alert a { text-decoration: underline; font-weight: 600; }

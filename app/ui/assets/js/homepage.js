@@ -17,6 +17,7 @@ function onReady(event) {
 	loadCounts();
 	showLastSync();
 	showBackupAlert();
+	showLicenseAlert();
 	if (info.online && !autoSyncDone()) { markAutoSyncDone(); autoSync(); }
 }
 
@@ -128,6 +129,21 @@ async function showBackupAlert() {
 	const link = element("a", "", "Impostazioni");
 	link.href = "settings.html";
 	alertBox.append(link);
+}
+
+// Avviso negli ultimi giorni di licenza.
+async function showLicenseAlert() {
+	let status;
+	try {
+		status = await invoke("get_license_status");
+	} catch (error) {
+		return;
+	}
+	if (status.state !== "expiring") { return; }
+	const box = $("license-alert");
+	const days = status.days_left;
+	box.textContent = "Licenza in scadenza il " + formatDate(status.valid_until) + (days <= 0 ? " (oggi)" : " (tra " + days + (days === 1 ? " giorno" : " giorni") + ")") + ": contattare EosMedTech per il rinnovo.";
+	box.hidden = false;
 }
 
 function greeting() {

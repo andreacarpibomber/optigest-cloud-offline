@@ -56,6 +56,7 @@ async function initPage() {
 	const page = document.body.dataset.page;
 	if (!page) { return; }
 	if (!(await invoke("is_unlocked"))) { goToLogin(); return; }
+	if ((await invoke("get_license_status")).blocked) { location.replace("license.html"); return; }
 	const forceRefresh = document.body.dataset.refresh === "true";
 	const info = await loadSession(forceRefresh);
 	if (!info) { return; }

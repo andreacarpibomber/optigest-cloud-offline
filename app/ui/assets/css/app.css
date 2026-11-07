@@ -210,3 +210,11 @@ a.card-widget:hover { transform: translateY(-2px); }
 .backup-list li { padding: 6px 0; border-bottom: 1px solid var(--backgroundGrey); }
 .backup-alert { margin: 0 0 20px; padding: 14px 18px; border-radius: 14px; background: rgba(192, 57, 43, .12); color: #c0392b; font-size: 14px; }
 .backup-alert a { text-decoration: underline; font-weight: 600; }
+
+/* Licenza */
+.license-box { max-width: 520px; text-align: center; padding-top: 80px; }
+.license-logo { height: 56px; width: auto; margin-bottom: 24px; }
+.license-message { margin: 0 0 6px; font-size: 18px; font-weight: 600; }
+.license-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 24px; }
+.license-actions .link { border: 0; background: none; font-family: var(--main-font); font-size: 14px; font-weight: 600; color: var(--quinquernary); cursor: pointer; }
+:root[data-theme="dark"] .license-logo { filter: brightness(0) invert(1); }

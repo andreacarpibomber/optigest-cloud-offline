@@ -10,6 +10,7 @@ function onReady() {
 	$("pin-form").addEventListener("submit", submitPinChange);
 	loadBiometric();
 	loadBackup();
+	loadLicense();
 }
 
 // ---- Tema ----
@@ -159,4 +160,35 @@ function backupMessage(text, isError) {
 	const node = $("backup-message");
 	node.textContent = text;
 	node.classList.toggle("error", isError);
+}
+
+// ---- Licenza ----
+
+async function loadLicense() {
+	$("btn-license").addEventListener("click", recheckLicense);
+	try {
+		showLicenseStatus(await invoke("get_license_status"));
+	} catch (error) {
+		$("license-status").textContent = String(error);
+	}
+}
+
+function showLicenseStatus(status) {
+	const until = status.valid_until ? " Scadenza: " + formatDate(status.valid_until) + (status.days_left !== null ? " (" + status.days_left + " giorni)" : "") + "." : "";
+	$("license-status").textContent = status.message + "." + until;
+}
+
+async function recheckLicense() {
+	const button = $("btn-license");
+	button.disabled = true;
+	$("license-message").classList.remove("error");
+	$("license-message").textContent = "Controllo in corso...";
+	try {
+		showLicenseStatus(await invoke("refresh_license"));
+		$("license-message").textContent = "Licenza aggiornata.";
+	} catch (error) {
+		$("license-message").classList.add("error");
+		$("license-message").textContent = String(error);
+	}
+	button.disabled = false;
 }

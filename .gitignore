@@ -8,3 +8,5 @@ gen/schemas/
 gen/apple/
 gen/android/
 WixTools/
+
+secret/

@@ -124,6 +124,27 @@ pub fn status() -> Result<SyncStatus, String> {
 	Ok(SyncStatus { last_sync_on, full_pending, running: RUNNING.load(Ordering::SeqCst), wait_secs })
 }
 
+// Licenza firmata dal cloud: (documento, firma). La verifica della firma la fa license.rs.
+pub async fn fetch_license() -> Result<(String, String), String> {
+	let token = secure_store::get(secure_store::KEY_TOKEN).unwrap_or_default();
+	if token.is_empty() { return Err(SESSION_EXPIRED.to_string()); }
+	let device_id = device_id()?;
+	let client = reqwest::Client::builder().timeout(Duration::from_secs(REQUEST_TIMEOUT_SECS)).cookie_store(true).build().map_err(err_to_string)?;
+	let response: LicenseResponse = call(&client, &token, &device_id, &[("fn", "license".to_string())]).await?;
+	Ok((response.license.payload, response.license.signature))
+}
+
+#[derive(Deserialize)]
+struct LicenseResponse {
+	license: LicenseDocument,
+}
+
+#[derive(Deserialize)]
+struct LicenseDocument {
+	payload: String,
+	signature: String,
+}
+
 // Motivo per cui ora non conviene fare un backup del DB (sync in corso o scarico completo a metà).
 pub fn blocks_backup() -> Result<Option<String>, String> {
 	let status = status()?;

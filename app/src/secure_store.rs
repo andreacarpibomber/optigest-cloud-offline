@@ -16,6 +16,8 @@ pub const KEY_TOKEN: &str = "login_token";
 pub const KEY_PIN_HASH: &str = "pin_hash";
 pub const KEY_NAME: &str = "display_name";
 pub const KEY_BIOMETRIC: &str = "biometric_enabled";
+pub const KEY_LICENSE: &str = "license_signed";
+pub const KEY_LICENSE_SEEN: &str = "license_seen";
 
 pub fn init(app: &AppHandle) -> Result<(), String> {
 	#[cfg(debug_assertions)]

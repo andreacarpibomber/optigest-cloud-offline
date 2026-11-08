@@ -28,6 +28,7 @@ fn main() {
 		.invoke_handler(tauri::generate_handler![
 			api::boot_state,
 			api::app_version,
+			api::set_zoom,
 			api::is_unlocked,
 			api::logout,
 			api::connect_upstream,

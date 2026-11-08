@@ -49,6 +49,57 @@ const NAV_SECTIONS = [
 ];
 const PAGE_PARENT = { patient: "patients", visit: "visits" };
 
+// Zoom: Cmd/Ctrl + (ingrandisce), Cmd/Ctrl - (riduce), Cmd/Ctrl 0 (100%), anche con Ctrl + rotella. Il livello è ricordato.
+const ZOOM_KEY = "optigest.zoom";
+const ZOOM_MIN = 0.6;
+const ZOOM_MAX = 2.0;
+const ZOOM_STEP = 0.1;
+
+function readZoom() {
+	try {
+		const value = parseFloat(localStorage.getItem(ZOOM_KEY));
+		if (value >= ZOOM_MIN && value <= ZOOM_MAX) { return value; }
+	} catch (error) {
+		return 1;
+	}
+	return 1;
+}
+
+async function applyZoom(factor) {
+	const zoom = Math.round(Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, factor)) * 100) / 100;
+	try {
+		localStorage.setItem(ZOOM_KEY, String(zoom));
+	} catch (error) {
+		// senza storage lo zoom vale solo per questa pagina
+	}
+	try {
+		await invoke("set_zoom", { factor: zoom });
+	} catch (error) {
+		console.error("set_zoom", error);
+	}
+}
+
+function onZoomKey(event) {
+	if (!(event.metaKey || event.ctrlKey) || event.altKey) { return; }
+	let next;
+	if (event.key === "+" || event.key === "=") { next = readZoom() + ZOOM_STEP; }
+	else if (event.key === "-" || event.key === "_") { next = readZoom() - ZOOM_STEP; }
+	else if (event.key === "0") { next = 1; }
+	else { return; }
+	event.preventDefault();
+	applyZoom(next);
+}
+
+function onZoomWheel(event) {
+	if (!event.ctrlKey) { return; }
+	event.preventDefault();
+	applyZoom(readZoom() + (event.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP));
+}
+
+document.addEventListener("keydown", onZoomKey);
+document.addEventListener("wheel", onZoomWheel, { passive: false });
+if (readZoom() !== 1) { applyZoom(readZoom()); }
+
 function $(id) {
 	return document.getElementById(id);
 }

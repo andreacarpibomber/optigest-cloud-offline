@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="it">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Calendario - OptiGest Cloud Offline</title>
+	<link rel="stylesheet" href="assets/css/app.css">
+	<link rel="stylesheet" href="assets/css/calendar.css">
+	<script src="assets/js/theme.js"></script>
+</head>
+<body class="page" data-page="calendar">
+	<header id="topbar"></header>
+	<main class="content wide">
+		<h1 class="page-title">Calendario</h1>
+		<p id="calendar-error" class="table-error"></p>
+		<div id="calendar" class="calendar-card"></div>
+	</main>
+
+	<!-- Dettaglio appuntamento -->
+	<div id="event-overlay" class="event-overlay" hidden>
+		<div class="event-sheet" role="dialog" aria-modal="true" aria-labelledby="event-title">
+			<h2 id="event-title" class="event-title"></h2>
+			<p id="event-when" class="event-when"></p>
+			<dl id="event-fields" class="fields event-fields"></dl>
+			<button id="event-close" class="btn-primary" type="button">Chiudi</button>
+		</div>
+	</div>
+
+	<script src="assets/vendor/fullcalendar.min.js"></script>
+	<script src="assets/vendor/fullcalendar-it.js"></script>
+	<script src="assets/js/common.js"></script>
+	<script src="assets/js/calendar.js"></script>
+</body>
+</html>

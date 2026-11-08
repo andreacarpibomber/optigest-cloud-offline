@@ -1,12 +1,13 @@
-// Sincronizzazione cloud -> DB locale (sola lettura), protocollo v1 su /api/syncData.php.
+// Sincronizzazione cloud -> DB locale (sola lettura), protocollo v2 su /api/syncData.php.
 //
 // Richieste: GET con "tkn" (loginTkn, come le altre API), "device" (id installazione) e "fn":
-//   handshake  protocol, app_version        -> { success, protocol, epoch, max_batch }
+//   handshake  protocol, app_version        -> { success, protocol, epochs: {patient, visit, event}, max_batch }
 //   pull       table, limit, rewind_s,
 //              cursor_updated_on, cursor_id -> { success, rows: [{colonna: valore}], next_cursor: {updated_on, id}, has_more }
 // Errori: 401 token non accettato (sessione intatta), 426 app troppo vecchia, altri codici = errore del cloud.
 //
-// Primo accesso o epoch cambiato (backup ripristinato sul cloud): full sync = pull dal cursore zero.
+// Un epoch per tabella. Primo accesso o epoch di una tabella cambiato (es. backup ripristinato sul cloud):
+// full sync di QUELLA tabella = pull dal cursore zero. Se si riscaricano i pazienti si riscaricano anche le visite.
 // A fine full sync le righe locali che il cloud non ha mandato vengono eliminate (nulla viene eliminato prima).
 // Dopo: pull incrementale dal cursore, riletto con una finestra di sicurezza (rewind_s) sulla prima pagina.
 // Ogni pagina si applica in una transazione insieme al suo cursore: un'interruzione riparte dall'ultima pagina.
@@ -27,13 +28,11 @@ use std::time::Duration;
 
 pub const SESSION_EXPIRED: &str = "SESSION_EXPIRED";
 
-const PROTOCOL_VERSION: u32 = 1;
+const PROTOCOL_VERSION: u32 = 2;
 const REQUEST_TIMEOUT_SECS: u64 = 60;
 const MAX_BATCH: u32 = 2000;
 const SAFETY_WINDOW_SECS: u32 = 60;
 
-const STATE_EPOCH: &str = "epoch";
-const STATE_FULL_SYNC: &str = "full_sync";
 const STATE_LAST_SYNC: &str = "last_sync_on";
 const STATE_DEVICE_ID: &str = "device_id";
 const FULL_PENDING: &str = "pending";
@@ -49,8 +48,8 @@ struct SyncTable {
 	columns: &'static [&'static str],
 }
 
-// Pazienti prima delle visite.
-const TABLES: [SyncTable; 2] = [
+// Pazienti prima delle visite; gli appuntamenti (calendario) per ultimi.
+const TABLES: [SyncTable; 3] = [
 	SyncTable {
 		name: "patient",
 		sql_table: "Patient",
@@ -69,12 +68,18 @@ const TABLES: [SyncTable; 2] = [
 		id_column: "VisitID",
 		columns: &["VisitID", "VPatientID", "VDate", "VCause", "VDiagnosis", "VData", "VChecksum", "VLastUpdate", "VDeleted"],
 	},
+	SyncTable {
+		name: "event",
+		sql_table: "Event",
+		id_column: "EventID",
+		columns: &["EventID", "EventOwnerID", "EventLastEditorID", "EventOrgID", "EventTitle", "EventStart", "EventEnd", "EventData", "EventLastEdit", "EventDeleted"],
+	},
 ];
 
 #[derive(Deserialize)]
 struct Handshake {
 	protocol: u32,
-	epoch: String,
+	epochs: HashMap<String, String>,
 	#[serde(default)]
 	max_batch: u32,
 }
@@ -103,6 +108,7 @@ pub struct SyncReport {
 	full: bool,
 	patients: u64,
 	visits: u64,
+	events: u64,
 	removed: u64,
 }
 
@@ -119,7 +125,7 @@ pub fn status() -> Result<SyncStatus, String> {
 	let guard = db::lock();
 	let connection = db::get(&guard)?;
 	let last_sync_on = get_state(connection, STATE_LAST_SYNC)?;
-	let full_pending = get_state(connection, STATE_FULL_SYNC)?.as_deref() == Some(FULL_PENDING);
+	let full_pending = any_full_pending(connection)?;
 	let wait_secs = wait_seconds(connection, full_pending)?;
 	Ok(SyncStatus { last_sync_on, full_pending, running: RUNNING.load(Ordering::SeqCst), wait_secs })
 }
@@ -198,13 +204,17 @@ async fn run_all(on_progress: &(dyn Fn(Progress) + Send + Sync)) -> Result<SyncR
 	if handshake.protocol != PROTOCOL_VERSION { return Err("Protocollo di sincronizzazione non compatibile: aggiornare l'app".to_string()); }
 	let batch = if handshake.max_batch == 0 { MAX_BATCH } else { handshake.max_batch.min(MAX_BATCH) };
 
-	let full = prepare_full_sync(&handshake.epoch)?;
-	let mut report = SyncReport { full, ..SyncReport::default() };
-	for table in TABLES.iter() {
-		let count = sync_table(&client, &token, &device_id, table, batch, full, on_progress).await?;
-		if table.name == "patient" { report.patients = count; } else { report.visits = count; }
+	let fulls = prepare_full_sync(&handshake.epochs)?;
+	let mut report = SyncReport { full: fulls.iter().any(|full| *full), ..SyncReport::default() };
+	for (index, table) in TABLES.iter().enumerate() {
+		let count = sync_table(&client, &token, &device_id, table, batch, fulls[index], on_progress).await?;
+		match table.name {
+			"patient" => report.patients = count,
+			"visit" => report.visits = count,
+			_ => report.events = count,
+		}
 	}
-	if full { report.removed = finish_full_sync()?; }
+	report.removed = finish_full_sync(&fulls)?;
 	mark_synced()?;
 	Ok(report)
 }
@@ -309,42 +319,62 @@ fn apply_page(table: &SyncTable, page: &PullResponse, full: bool) -> Result<u64,
 	Ok(page.rows.len() as u64)
 }
 
-// Decide se questo ciclo è una full sync. Epoch nuovo o diverso: si riparte da zero (cursori e ID visti azzerati).
-fn prepare_full_sync(epoch: &str) -> Result<bool, String> {
+// Per ogni tabella decide se questo ciclo è una full sync. Epoch nuovo o diverso: la tabella riparte da zero
+// (cursore e ID visti azzerati). Le visite dipendono dai pazienti: se i pazienti ripartono, ripartono anche loro.
+fn prepare_full_sync(epochs: &HashMap<String, String>) -> Result<Vec<bool>, String> {
 	let guard = db::lock();
 	let connection = db::get(&guard)?;
 	let transaction = connection.unchecked_transaction().map_err(err_to_string)?;
-	let stored_epoch = get_state(&transaction, STATE_EPOCH)?;
-	let pending = get_state(&transaction, STATE_FULL_SYNC)?.as_deref() == Some(FULL_PENDING);
-	if stored_epoch.as_deref() != Some(epoch) {
-		for table in TABLES.iter() { transaction.execute("DELETE FROM SyncState WHERE Name = ?1", params![cursor_key(table)]).map_err(err_to_string)?; }
-		transaction.execute("DELETE FROM SyncSeen", []).map_err(err_to_string)?;
-		set_state(&transaction, STATE_EPOCH, epoch)?;
-		set_state(&transaction, STATE_FULL_SYNC, FULL_PENDING)?;
-		transaction.commit().map_err(err_to_string)?;
-		return Ok(true);
+	let mut fulls: Vec<bool> = Vec::new();
+	let mut patient_reset = false;
+	for table in TABLES.iter() {
+		let epoch = epochs.get(table.name).ok_or(format!("Epoch mancante nella risposta del cloud ({})", table.name))?;
+		let stored_epoch = get_state(&transaction, &epoch_key(table))?;
+		let pending = get_state(&transaction, &full_key(table))?.as_deref() == Some(FULL_PENDING);
+		let changed = stored_epoch.as_deref() != Some(epoch.as_str());
+		let reset = changed || (table.name == "visit" && patient_reset);
+		if reset {
+			transaction.execute("DELETE FROM SyncState WHERE Name = ?1", params![cursor_key(table)]).map_err(err_to_string)?;
+			transaction.execute("DELETE FROM SyncSeen WHERE TableName = ?1", params![table.name]).map_err(err_to_string)?;
+			set_state(&transaction, &epoch_key(table), epoch)?;
+			set_state(&transaction, &full_key(table), FULL_PENDING)?;
+		}
+		if table.name == "patient" { patient_reset = reset; }
+		fulls.push(reset || pending);
 	}
 	transaction.commit().map_err(err_to_string)?;
-	Ok(pending)
+	Ok(fulls)
 }
 
 // Fine scarico completo: via le righe locali che il cloud non ha mandato (dati di prova, record spariti).
-fn finish_full_sync() -> Result<u64, String> {
+// Vale solo per le tabelle che hanno fatto la full sync in questo ciclo.
+fn finish_full_sync(fulls: &[bool]) -> Result<u64, String> {
 	let guard = db::lock();
 	let connection = db::get(&guard)?;
 	let transaction = connection.unchecked_transaction().map_err(err_to_string)?;
 	let mut removed: u64 = 0;
-	for table in TABLES.iter() {
+	for (index, table) in TABLES.iter().enumerate() {
+		if !fulls[index] { continue; }
 		let sql = format!(
 			"DELETE FROM {} WHERE {} NOT IN (SELECT ID FROM SyncSeen WHERE TableName = ?1)",
 			table.sql_table, table.id_column
 		);
 		removed += transaction.execute(&sql, params![table.name]).map_err(err_to_string)? as u64;
+		transaction.execute("DELETE FROM SyncSeen WHERE TableName = ?1", params![table.name]).map_err(err_to_string)?;
+		set_state(&transaction, &full_key(table), FULL_DONE)?;
 	}
-	transaction.execute("DELETE FROM SyncSeen", []).map_err(err_to_string)?;
-	set_state(&transaction, STATE_FULL_SYNC, FULL_DONE)?;
 	transaction.commit().map_err(err_to_string)?;
 	Ok(removed)
+}
+
+// Almeno una tabella ha uno scarico completo da fare: non terminato, oppure mai iniziato (nessuna epoca salvata,
+// per esempio al primo avvio dopo un aggiornamento). In questo caso l'attesa tra una sync e l'altra non vale.
+fn any_full_pending(connection: &Connection) -> Result<bool, String> {
+	for table in TABLES.iter() {
+		if get_state(connection, &full_key(table))?.as_deref() == Some(FULL_PENDING) { return Ok(true); }
+		if get_state(connection, &epoch_key(table))?.is_none() { return Ok(true); }
+	}
+	Ok(false)
 }
 
 fn describe_wait(seconds: i64) -> String {
@@ -407,10 +437,11 @@ fn set_state(connection: &Connection, name: &str, value: &str) -> Result<(), Str
 fn log_result(result: &Result<SyncReport, String>) {
 	let message = match result {
 		Ok(report) => format!(
-			"Sincronizzazione {} completata: {} pazienti, {} visite, {} righe locali rimosse",
+			"Sincronizzazione {} completata: {} pazienti, {} visite, {} appuntamenti, {} righe locali rimosse",
 			if report.full { "completa" } else { "incrementale" },
 			report.patients,
 			report.visits,
+			report.events,
 			report.removed
 		),
 		Err(error) => format!("Sincronizzazione non riuscita: {}", error),
@@ -435,6 +466,14 @@ fn upsert_sql(table: &SyncTable) -> String {
 
 fn cursor_key(table: &SyncTable) -> String {
 	format!("cursor.{}", table.name)
+}
+
+fn epoch_key(table: &SyncTable) -> String {
+	format!("epoch.{}", table.name)
+}
+
+fn full_key(table: &SyncTable) -> String {
+	format!("full_sync.{}", table.name)
 }
 
 fn id_of(table: &SyncTable, row: &Map<String, Value>) -> Result<i64, String> {

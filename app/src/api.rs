@@ -3,11 +3,12 @@
 //
 //   Pubbliche (anche con app bloccata): boot_state, app_version, set_zoom, is_unlocked, set_pin, verify_pin, biometric_status, unlock_biometric, start_pair, get_hosts, set_host, open_legal_page, logout
 //   Protette (richiedono lo sblocco con PIN): connect_upstream, get_counts, list_logs,
-//   search_patients, get_patient, search_visits, get_visit, sync_now, get_sync_status
+//   search_patients, get_patient, search_visits, get_visit, list_events, sync_now, get_sync_status
 //
 // Per aggiungere un'API: funzione qui con #[tauri::command], poi la riga in generate_handler! di main.rs.
 
 use crate::backup::{self, BackupOutcome, BackupStatus};
+use crate::calendar::{self, EventRow};
 use crate::license;
 use crate::biometric::{self, BiometricStatus};
 use crate::external;
@@ -151,6 +152,13 @@ pub fn search_visits(query: VisitQuery) -> Result<VisitPage, String> {
 pub fn get_visit(id: i64) -> Result<VisitDetail, String> {
 	session::require_unlocked()?;
 	visits::get(id)
+}
+
+// Appuntamenti tra due istanti ("YYYY-MM-DD HH:MM:SS", ora del cloud) per il calendario.
+#[tauri::command]
+pub fn list_events(start: String, end: String) -> Result<Vec<EventRow>, String> {
+	session::require_unlocked()?;
+	calendar::list(start, end)
 }
 
 // ---- Sincronizzazione (protette) ----

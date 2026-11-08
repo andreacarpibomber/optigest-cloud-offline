@@ -27,6 +27,8 @@ fn main() {
 		.setup(setup_app)
 		.invoke_handler(tauri::generate_handler![
 			api::boot_state,
+			api::app_version,
+			api::set_zoom,
 			api::is_unlocked,
 			api::logout,
 			api::connect_upstream,
@@ -39,7 +41,7 @@ fn main() {
 			api::start_pair,
 			api::get_hosts,
 			api::set_host,
-				api::open_legal_page,
+			api::open_legal_page,
 			api::get_counts,
 			api::list_logs,
 			api::search_patients,

@@ -143,13 +143,22 @@ function openHome() {
 	location.replace(HOME_PAGE);
 }
 
-// Host corrente (da config.json): mostrato sullo splash.
-async function loadHost() {
-	const info = await invoke("get_hosts");
-	$("splash-host").textContent = info.current;
+// Versione dell'app (Cargo.toml), mostrata in fondo alla pagina di accesso.
+async function loadVersion() {
+	try {
+		$("app-version").textContent = "Versione " + await invoke("app_version");
+	} catch (error) {
+		console.error("app_version", error);
+	}
 }
 
-// Selettore host: long press 3s sul logo dello splash (come la fascia in alto nell'app Swift).
+// Host corrente (da config.json): mostrato sullo splash, cliccabile per cambiarlo.
+async function loadHost() {
+	const info = await invoke("get_hosts");
+	$("splash-host").textContent = info.current + " ▾";
+}
+
+// Selettore host: click sul nome dell'host, oppure long press 3s sul logo dello splash (come la fascia in alto nell'app Swift).
 async function openHostPicker() {
 	const info = await invoke("get_hosts");
 	const list = $("host-list");
@@ -187,7 +196,13 @@ $("host-cancel").addEventListener("click", function () { $("host-overlay").class
 $("logo").addEventListener("pointerdown", logoPressStart);
 $("logo").addEventListener("pointerup", logoPressEnd);
 $("logo").addEventListener("pointerleave", logoPressEnd);
+const hostLabel = $("splash-host");
+hostLabel.setAttribute("role", "button");
+hostLabel.setAttribute("tabindex", "0");
+hostLabel.addEventListener("click", openHostPicker);
+hostLabel.addEventListener("keydown", function (event) { if (event.key === "Enter" || event.key === " ") openHostPicker(); });
 
 listen("pair-completed", start);
 
 start();
+loadVersion();

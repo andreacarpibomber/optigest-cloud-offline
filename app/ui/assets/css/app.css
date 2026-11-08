@@ -218,3 +218,10 @@ a.card-widget:hover { transform: translateY(-2px); }
 .license-actions { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 24px; }
 .license-actions .link { border: 0; background: none; font-family: var(--main-font); font-size: 14px; font-weight: 600; color: var(--quinquernary); cursor: pointer; }
 :root[data-theme="dark"] .license-logo { filter: brightness(0) invert(1); }
+
+#splash-host { cursor: pointer; }
+#splash-host:hover { text-decoration: underline; }
+
+.app-version { position: fixed; bottom: 12px; left: 0; right: 0; text-align: center; font-size: 0.8rem; opacity: 0.6; pointer-events: none; }
+.content .app-version { position: static; margin-top: 24px; }
+.copyright .app-version::before { content: " · "; }

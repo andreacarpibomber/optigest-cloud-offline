@@ -1,7 +1,7 @@
 // Router unico delle API: tutti i comandi che la UI chiama con invoke("nome", {...}) stanno qui.
 // I moduli (session, pin, patients, ...) contengono solo la logica; qui si decide cosa è esposto e a quali condizioni.
 //
-//   Pubbliche (anche con app bloccata): boot_state, is_unlocked, set_pin, verify_pin, biometric_status, unlock_biometric, start_pair, get_hosts, set_host, open_legal_page, logout
+//   Pubbliche (anche con app bloccata): boot_state, app_version, set_zoom, is_unlocked, set_pin, verify_pin, biometric_status, unlock_biometric, start_pair, get_hosts, set_host, open_legal_page, logout
 //   Protette (richiedono lo sblocco con PIN): connect_upstream, get_counts, list_logs,
 //   search_patients, get_patient, search_visits, get_visit, sync_now, get_sync_status
 //
@@ -27,6 +27,18 @@ use tauri::{AppHandle, Emitter};
 #[tauri::command]
 pub fn boot_state() -> &'static str {
 	session::boot_state()
+}
+
+// Versione dell'app (da Cargo.toml, la stessa che il cloud riceve nell'handshake di sync).
+#[tauri::command]
+pub fn app_version() -> &'static str {
+	env!("CARGO_PKG_VERSION")
+}
+
+// Zoom della pagina (Cmd/Ctrl + / - / 0). Lo imposta il webview stesso, come lo zoom di un browser.
+#[tauri::command]
+pub fn set_zoom(window: tauri::WebviewWindow, factor: f64) -> Result<(), String> {
+	window.set_zoom(factor.clamp(0.5, 3.0)).map_err(|error| error.to_string())
 }
 
 #[tauri::command]

@@ -14,6 +14,9 @@ pub const HOSTS: [&str; 4] = [
 // Le risposte di sync contengono dati dei pazienti: lasciare false salvo debug mirato.
 pub const HTTP_LOG_ENABLED: bool = false;
 
+// Controllo della licenza (false solo per lo sviluppo: l'app non verifica la scadenza)
+pub const LICENSE_ENFORCED: bool = true;
+
 // Intervallo minimo tra due sincronizzazioni riuscite (secondi). Vale per automatica e manuale.
 // Non si applica se uno scarico completo è rimasto a metà (va ripreso).
 pub const SYNC_MIN_INTERVAL_SECS: i64 = 3600;

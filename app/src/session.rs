@@ -5,6 +5,7 @@
 // Dopo lo sblocco la UI chiama connect_upstream (validazione token su OptiGest Cloud).
 
 use crate::globals;
+use crate::license;
 use crate::httplog;
 use crate::logdb;
 use crate::profile::{self, Profile};
@@ -74,6 +75,8 @@ pub async fn connect_upstream() -> Result<UpstreamInfo, String> {
 	httplog::response("login", status, &profile::redacted(&body));
 	let received = Profile::from_body(&body).with_fallback(&cached);
 	if !received.is_empty() && received != cached { let _ = secure_store::set(secure_store::KEY_NAME, &received.to_cache()); }
+	// Dopo l'accesso: licenza firmata dal cloud. Se non raggiungibile resta quella salvata.
+	let _ = license::refresh().await;
 	Ok(info(true, true, received, profile::redacted(&body)))
 }
 
@@ -87,8 +90,8 @@ pub fn set_unlocked(value: bool) {
 }
 
 pub fn require_unlocked() -> Result<(), String> {
-	if is_unlocked() { return Ok(()); }
-	Err("App bloccata: inserire il PIN".to_string())
+	if !is_unlocked() { return Err("App bloccata: inserire il PIN".to_string()); }
+	license::ensure_ok()
 }
 
 pub fn logout() {

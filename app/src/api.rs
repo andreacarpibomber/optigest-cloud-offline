@@ -8,6 +8,7 @@
 // Per aggiungere un'API: funzione qui con #[tauri::command], poi la riga in generate_handler! di main.rs.
 
 use crate::backup::{self, BackupOutcome, BackupStatus};
+use crate::license;
 use crate::biometric::{self, BiometricStatus};
 use crate::external;
 use crate::globals::{self, HostsInfo};
@@ -174,4 +175,16 @@ pub fn set_backup_keep(keep: u32) -> Result<BackupStatus, String> {
 pub async fn run_backup_now() -> Result<BackupOutcome, String> {
 	session::require_unlocked()?;
 	tauri::async_runtime::spawn_blocking(|| backup::run(true)).await.map_err(|error| error.to_string())?
+}
+
+// ---- Licenza (pubbliche: servono anche a app bloccata per licenza) ----
+
+#[tauri::command]
+pub fn get_license_status() -> license::LicenseStatus {
+	license::status()
+}
+
+#[tauri::command]
+pub async fn refresh_license() -> Result<license::LicenseStatus, String> {
+	license::refresh().await
 }

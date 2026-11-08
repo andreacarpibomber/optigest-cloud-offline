@@ -10,6 +10,7 @@ mod dev_store;
 mod external;
 mod globals;
 mod httplog;
+mod license;
 mod logdb;
 mod pair;
 mod patients;
@@ -47,6 +48,8 @@ fn main() {
 			api::get_visit,
 			api::sync_now,
 			api::get_sync_status,
+			api::get_license_status,
+			api::refresh_license,
 			api::get_backup_status,
 			api::set_backup_keep,
 			api::run_backup_now,

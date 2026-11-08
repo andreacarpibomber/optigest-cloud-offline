@@ -2,9 +2,12 @@
 target/
 **/*.rs.bk
 *.pdb
+.DS_Store
 
 # Tauri
 gen/schemas/
 gen/apple/
 gen/android/
 WixTools/
+
+secret/

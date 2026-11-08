@@ -114,11 +114,11 @@ pub struct SyncReport {
 
 #[derive(Serialize)]
 pub struct SyncStatus {
-	last_sync_on: Option<String>,
-	full_pending: bool,
-	running: bool,
+	pub last_sync_on: Option<String>,
+	pub full_pending: bool,
+	pub running: bool,
 	// secondi da attendere prima di poter sincronizzare di nuovo (0 = subito)
-	wait_secs: i64,
+	pub wait_secs: i64,
 }
 
 pub fn status() -> Result<SyncStatus, String> {

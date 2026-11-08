@@ -3,6 +3,7 @@
 mod api;
 mod backup;
 mod biometric;
+mod calendar;
 mod config;
 mod db;
 #[cfg(debug_assertions)]
@@ -48,6 +49,7 @@ fn main() {
 			api::get_patient,
 			api::search_visits,
 			api::get_visit,
+			api::list_events,
 			api::sync_now,
 			api::get_sync_status,
 			api::get_license_status,

@@ -30,6 +30,7 @@ const ICON_COPYRIGHT = '<i class="bx bx-copyright"></i>';
 
 const ICON_HOME = '<i class="bx bx-bookmark"></i>';
 const ICON_LIST = '<i class="bx bx-list-ol"></i>';
+const ICON_CALENDAR = '<i class="bx bx-calendar"></i>';
 const ICON_SETTINGS = '<i class="bx bx-cog"></i>';
 const ICON_USER = '<i class="bx bx-user"></i>';
 const ICON_LOGOUT = '<i class="bx bx-power-off"></i>';
@@ -42,6 +43,7 @@ const NAV_SECTIONS = [
 			{ page: "homepage", label: "Home", href: "homepage.html", icon: ICON_HOME },
 			{ page: "patients", label: "Pazienti", href: "patients.html", icon: ICON_LIST },
 			{ page: "visits", label: "Visite", href: "visits.html", icon: ICON_LIST },
+			{ page: "calendar", label: "Calendario", href: "calendar.html", icon: ICON_CALENDAR },
 		],
 	},
 	{

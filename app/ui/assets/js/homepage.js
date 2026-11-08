@@ -3,7 +3,7 @@
 const listen = window.__TAURI__.event.listen;
 const AUTO_SYNC_KEY = "optigest.autoSyncDone";
 
-const TABLE_LABELS = { patient: "Pazienti", visit: "Visite" };
+const TABLE_LABELS = { patient: "Pazienti", visit: "Visite", event: "Appuntamenti" };
 
 let syncing = false;
 
@@ -88,7 +88,7 @@ function onSyncProgress(event) {
 
 function summary(report) {
 	const kind = report.full ? "Scarico completo" : "Aggiornamento";
-	let text = kind + ": " + formatNumber(report.patients, ".") + " pazienti, " + formatNumber(report.visits, ".") + " visite";
+	let text = kind + ": " + formatNumber(report.patients, ".") + " pazienti, " + formatNumber(report.visits, ".") + " visite, " + formatNumber(report.events, ".") + " appuntamenti";
 	if (report.removed > 0) { text += "; " + formatNumber(report.removed, ".") + " record locali non presenti sul cloud rimossi"; }
 	return text;
 }

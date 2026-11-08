@@ -1,0 +1,97 @@
+/* Layout con menu laterale, come OptiGest Cloud. Caricato da common.js dopo app.css (ne ridefinisce alcune regole). */
+
+:root {
+	--sidebar-w: 220px;
+	--sidebar-bg: #1c2541;
+	--sidebar-text: #ffffff;
+	--sidebar-muted: #8f9bc9;
+	--sidebar-active-bg: #ffffff;
+	--sidebar-active-text: #1c2541;
+	--green: #5fd07a;
+}
+
+:root[data-theme="dark"] {
+	--sidebar-bg: #0b0f20;
+	--sidebar-active-bg: #e8ebf7;
+	--sidebar-active-text: #0b0f20;
+}
+
+body.shell { display: block; padding-left: var(--sidebar-w); }
+
+/* Menu laterale */
+.sidebar {
+	position: fixed;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	z-index: 20;
+	display: flex;
+	flex-direction: column;
+	width: var(--sidebar-w);
+	box-sizing: border-box;
+	overflow-y: auto;
+	background: var(--sidebar-bg);
+	color: var(--sidebar-text);
+	box-shadow: 4px 0 24px rgba(25, 42, 70, .18);
+}
+
+.sidebar-brand { display: flex; justify-content: center; padding: 30px 20px 18px; }
+.sidebar-brand img { display: block; width: 150px; height: auto; }
+.logo-invert { filter: brightness(0) invert(1); }
+
+.sidebar-nav { flex: 1; padding-bottom: 16px; }
+.nav-title { padding: 26px 14px 10px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--sidebar-muted); }
+
+.nav-item {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	margin: 2px 0;
+	padding: 11px 16px;
+	font-size: 15px;
+	font-weight: 500;
+	color: var(--sidebar-text);
+	cursor: pointer;
+}
+.nav-item svg { flex: none; width: 20px; height: 20px; }
+.nav-item:hover { background: rgba(255, 255, 255, .07); }
+.nav-item.active { margin: 2px 16px; border-radius: 4px; background: var(--sidebar-active-bg); color: var(--sidebar-active-text); }
+
+.sidebar-footer { display: flex; flex-direction: column; gap: 8px; padding: 18px 16px 22px; font-size: 12px; color: var(--sidebar-muted); }
+.sidebar-footer .footer-links { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.sidebar-footer .footer-links a { color: var(--sidebar-text); font-weight: 500; cursor: pointer; }
+.sidebar-footer .footer-links a:hover { text-decoration: underline; }
+.footer-note { display: inline-flex; align-items: center; gap: 8px; }
+.footer-note svg { width: 14px; height: 14px; }
+
+/* Barra in alto: stato + utente */
+.topbar { display: flex; align-items: center; justify-content: flex-end; gap: 22px; padding: 16px 32px 0; background: none; box-shadow: none; }
+
+.user-menu { position: relative; }
+.user-button { display: flex; align-items: center; gap: 14px; padding: 0; border: 0; background: none; color: var(--primary); font-family: var(--main-font); font-size: 15px; font-weight: 500; cursor: pointer; }
+.user-avatar { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--secundary); box-shadow: var(--shadow); }
+.user-avatar svg { width: 24px; height: 24px; }
+
+.user-dropdown { position: absolute; top: calc(100% + 10px); right: 0; z-index: 30; min-width: 190px; padding: 6px 0; border-radius: 8px; background: var(--secundary); box-shadow: var(--shadow); }
+.user-dropdown[hidden] { display: none; }
+.dropdown-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 18px; border: 0; background: none; color: var(--primary); font-family: var(--main-font); font-size: 14px; text-align: left; cursor: pointer; }
+.dropdown-item svg { width: 18px; height: 18px; }
+.dropdown-item:hover { background: var(--background); }
+
+/* Contenuto a tutta larghezza accanto al menu */
+.content, .content.wide { max-width: none; margin: 0; padding: 14px 32px 40px; }
+.greeting, .page-title { font-size: 26px; font-weight: 600; margin-bottom: 22px; }
+
+/* Pulsanti e tabelle: spigoli netti come nel cloud */
+.btn-primary { padding: 10px 20px; border-radius: 4px; }
+.btn-green { padding: 10px 20px; border: 0; border-radius: 4px; background: var(--green); color: #fff; font-family: var(--main-font); font-size: 14px; font-weight: 500; cursor: pointer; }
+.table-card { border-radius: 4px; }
+
+/* Schermi stretti: il menu passa sopra il contenuto */
+@media (max-width: 860px) {
+	body.shell { padding-left: 0; }
+	.sidebar { position: static; width: auto; }
+	.sidebar-nav { display: flex; flex-wrap: wrap; align-items: center; padding: 0 12px; }
+	.nav-title { display: none; }
+	.nav-item, .nav-item.active { margin: 4px; padding: 8px 14px; }
+}

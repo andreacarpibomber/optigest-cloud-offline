@@ -221,3 +221,7 @@ a.card-widget:hover { transform: translateY(-2px); }
 
 #splash-host { cursor: pointer; }
 #splash-host:hover { text-decoration: underline; }
+
+.app-version { position: fixed; bottom: 12px; left: 0; right: 0; text-align: center; font-size: 0.8rem; opacity: 0.6; pointer-events: none; }
+.content .app-version { position: static; margin-top: 24px; }
+.copyright .app-version::before { content: " · "; }

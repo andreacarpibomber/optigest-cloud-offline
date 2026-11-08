@@ -143,6 +143,15 @@ function openHome() {
 	location.replace(HOME_PAGE);
 }
 
+// Versione dell'app (Cargo.toml), mostrata in fondo alla pagina di accesso.
+async function loadVersion() {
+	try {
+		$("app-version").textContent = "Versione " + await invoke("app_version");
+	} catch (error) {
+		console.error("app_version", error);
+	}
+}
+
 // Host corrente (da config.json): mostrato sullo splash, cliccabile per cambiarlo.
 async function loadHost() {
 	const info = await invoke("get_hosts");
@@ -196,3 +205,4 @@ hostLabel.addEventListener("keydown", function (event) { if (event.key === "Ente
 listen("pair-completed", start);
 
 start();
+loadVersion();

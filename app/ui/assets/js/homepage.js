@@ -18,6 +18,7 @@ function onReady(event) {
 	showLastSync();
 	showBackupAlert();
 	showLicenseAlert();
+	showVersion();
 	if (info.online && !autoSyncDone()) { markAutoSyncDone(); autoSync(); }
 }
 
@@ -144,6 +145,15 @@ async function showLicenseAlert() {
 	const days = status.days_left;
 	box.textContent = "Licenza in scadenza il " + formatDate(status.valid_until) + (days <= 0 ? " (oggi)" : " (tra " + days + (days === 1 ? " giorno" : " giorni") + ")") + ": contattare EosMedTech per il rinnovo.";
 	box.hidden = false;
+}
+
+// Versione dell'app (Cargo.toml).
+async function showVersion() {
+	try {
+		$("app-version").textContent = "Versione " + await invoke("app_version");
+	} catch (error) {
+		console.error("app_version", error);
+	}
 }
 
 function greeting() {

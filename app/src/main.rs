@@ -60,6 +60,7 @@ fn main() {
 			api::search_visits,
 			api::get_visit,
 			api::list_events,
+			api::list_patient_events,
 			api::sync_now,
 			api::get_sync_status,
 			api::get_license_status,

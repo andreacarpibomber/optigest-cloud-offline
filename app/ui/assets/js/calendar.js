@@ -17,6 +17,7 @@ function startCalendar() {
 		locale: "it",
 		firstDay: 1,
 		initialView: "timeGridWeek",
+		initialDate: new URLSearchParams(location.search).get("date") || undefined,
 		headerToolbar: { left: "title", right: "prev,next today dayGridMonth,timeGridWeek,timeGridDay,listWeek" },
 		height: "calc(100vh - 190px)",
 		nowIndicator: true,

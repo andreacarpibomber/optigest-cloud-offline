@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Visita - OptiGest Cloud Offline</title>
 	<link rel="stylesheet" href="assets/css/app.css">
+	<link rel="stylesheet" href="assets/css/patient.css">
 	<script src="assets/js/theme.js"></script>
 </head>
 <body class="page" data-page="visits">
@@ -16,6 +17,29 @@
 		<div class="card-widget detail-card">
 			<dl id="visit-fields" class="fields"></dl>
 		</div>
+		<div class="table-card visits-card">
+			<h2 class="visits-title">Visite del paziente</h2>
+			<table class="data-table">
+				<thead>
+					<tr class="head-row">
+						<th class="col-date" data-sort="date"><button type="button" class="sort">Data<span class="arrows"><i class="up"></i><i class="down"></i></span></button></th>
+						<th data-sort="cause"><button type="button" class="sort">Motivo<span class="arrows"><i class="up"></i><i class="down"></i></span></button></th>
+						<th data-sort="diagnosis"><button type="button" class="sort">Conclusioni<span class="arrows"><i class="up"></i><i class="down"></i></span></button></th>
+					</tr>
+					<tr class="filter-row">
+						<th class="col-date"><input id="f-date" type="date"></th>
+						<th><input id="f-cause" type="text" placeholder="Motivo" autocomplete="off"></th>
+						<th><input id="f-diagnosis" type="text" placeholder="Conclusioni" autocomplete="off"></th>
+					</tr>
+				</thead>
+				<tbody id="table-body"></tbody>
+			</table>
+			<p id="table-error" class="table-error"></p>
+			<div class="table-foot">
+				<span id="results-info"></span>
+				<nav id="pager" class="pager" aria-label="Pagine"></nav>
+			</div>
+		</div>
 		<div id="visit-blocks" class="visit-blocks"></div>
 		<details id="visit-data-box" class="debug" hidden>
 			<summary>Dati della visita (JSON)</summary>
@@ -24,6 +48,8 @@
 	</main>
 	<script src="assets/js/common.js"></script>
 	<script src="assets/js/visit-schema.js"></script>
+	<script src="assets/js/table.js"></script>
+	<script src="assets/js/visit-visits.js"></script>
 	<script src="assets/js/visit.js"></script>
 </body>
 </html>

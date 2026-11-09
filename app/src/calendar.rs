@@ -14,6 +14,18 @@ const LIST_SQL: &str = "SELECT EventID, EventOwnerID, EventTitle, EventStart, Ev
 	ORDER BY EventStart, EventID
 	LIMIT :limit";
 
+// Prossimi appuntamenti di un paziente (scheda paziente). Il paziente sta in EventData come p_id
+// (tollerate anche le grafie pID e PID). "Prossimi" = non ancora finiti, nell'ora locale come i dati del cloud.
+const PATIENT_UPCOMING_SQL: &str = "SELECT EventID, EventOwnerID, EventTitle, EventStart, EventEnd, EventData
+	FROM Event
+	WHERE EventDeleted = 0
+		AND EventEnd >= datetime('now', 'localtime')
+		AND CAST(COALESCE(json_extract(EventData, '$.p_id'), json_extract(EventData, '$.pID'), json_extract(EventData, '$.PID')) AS INTEGER) = :patient_id
+	ORDER BY EventStart, EventID
+	LIMIT :limit";
+
+const MAX_PATIENT_EVENTS: i64 = 10;
+
 #[derive(Serialize)]
 pub struct EventRow {
 	id: i64,
@@ -32,6 +44,19 @@ pub fn list(start: String, end: String) -> Result<Vec<EventRow>, String> {
 	let mut statement = connection.prepare(LIST_SQL).map_err(err_to_string)?;
 	let found = statement
 		.query_map(named_params! { ":start": start, ":end": end, ":limit": MAX_EVENTS }, row_to_event)
+		.map_err(err_to_string)?;
+	let mut events: Vec<EventRow> = Vec::new();
+	for row in found { events.push(row.map_err(err_to_string)?); }
+	Ok(events)
+}
+
+// Prossimi appuntamenti del paziente (al massimo 10).
+pub fn upcoming_for_patient(patient_id: i64) -> Result<Vec<EventRow>, String> {
+	let guard = db::lock();
+	let connection = db::get(&guard)?;
+	let mut statement = connection.prepare(PATIENT_UPCOMING_SQL).map_err(err_to_string)?;
+	let found = statement
+		.query_map(named_params! { ":patient_id": patient_id, ":limit": MAX_PATIENT_EVENTS }, row_to_event)
 		.map_err(err_to_string)?;
 	let mut events: Vec<EventRow> = Vec::new();
 	for row in found { events.push(row.map_err(err_to_string)?); }

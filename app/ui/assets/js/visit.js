@@ -15,6 +15,7 @@ async function onReady() {
 	$("visit-title").textContent = "Visita del " + formatDate(visit.date.slice(0, 10));
 	renderFields(visit);
 	renderData(visit.data);
+	showPatientVisits(visit.patient_id, visit.id);
 }
 
 function renderFields(visit) {

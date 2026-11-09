@@ -5,19 +5,101 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Paziente - OptiGest Cloud Offline</title>
 	<link rel="stylesheet" href="assets/css/app.css">
+	<link rel="stylesheet" href="assets/css/patient.css">
 	<script src="assets/js/theme.js"></script>
 </head>
 <body class="page" data-page="patients">
 	<header id="topbar"></header>
-	<main class="content">
+	<main class="content wide">
 		<a class="back" href="patients.html">&larr; Pazienti</a>
 		<h1 id="patient-title" class="page-title">Paziente</h1>
 		<p id="patient-error" class="table-error"></p>
-		<div class="card-widget detail-card">
-			<dl id="patient-fields" class="fields"></dl>
+
+		<div class="patient-layout">
+
+			<!-- Colonna sinistra: dati del paziente (sola lettura) -->
+			<section class="detail-card">
+				<h2 class="section-title">Generalità e Recapiti</h2>
+				<div class="form-grid">
+					<div class="field"><span class="field-label">Cognome</span><div id="p-surname" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Nome</span><div id="p-name" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Genere</span><div id="p-gender" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Data di nascita</span><div id="p-birthday" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Comune di nascita</span><div id="p-birth-place" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Codice Fiscale</span><div id="p-fiscal" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Telefono 1</span><div id="p-phone1" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Telefono 2</span><div id="p-phone2" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Email</span><div id="p-email" class="ro-input"></div></div>
+				</div>
+
+				<h2 class="section-title">Fatturazione</h2>
+				<div class="form-grid">
+					<div class="field"><span class="field-label">Nazione</span><div id="p-nation" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">CAP</span><div id="p-postal" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Comune</span><div id="p-city" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Provincia (sigla)</span><div id="p-province" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Indirizzo</span><div id="p-address" class="ro-input"></div></div>
+				</div>
+
+				<h2 class="section-title">Altre informazioni</h2>
+				<div class="field field-wide">
+					<span class="field-label">Tag paziente</span>
+					<div id="p-tags" class="tag-list"></div>
+				</div>
+				<div class="form-grid form-grid-2">
+					<div class="field"><span class="field-label">Medico curante</span><div id="p-current" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Inviato da</span><div id="p-sending" class="ro-input"></div></div>
+					<div class="field"><span class="field-label">Anamnesi generale</span><div id="p-general" class="ro-input ro-area"></div></div>
+					<div class="field"><span class="field-label">Anamnesi oculare</span><div id="p-ocular" class="ro-input ro-area"></div></div>
+					<div class="field"><span class="field-label">Allergie</span><div id="p-allergies" class="ro-input ro-area"></div></div>
+					<div class="field"><span class="field-label">Informazioni / Note</span><div id="p-info" class="ro-input ro-area"></div></div>
+					<div class="field"><span class="field-label">Consenso al trattamento dei dati</span><div id="p-consent" class="ro-input"></div></div>
+				</div>
+				<p class="meta-line">ID paziente <span id="p-id"></span> · Creato il <span id="p-created"></span> · Ultimo aggiornamento <span id="p-updated"></span></p>
+			</section>
+
+			<!-- Colonna destra: memo (nascosto), appuntamenti e visite -->
+			<div class="side-column">
+				<section class="table-card side-card" id="memo-card" hidden>
+					<h2 class="section-title">Memo</h2>
+					<ul class="events-list"><li>Nessun memo per questo paziente</li></ul>
+				</section>
+
+				<section class="table-card side-card" id="appointments-card">
+					<h2 class="section-title">Appuntamenti</h2>
+					<ul id="appointments-list" class="events-list"></ul>
+				</section>
+
+				<section class="table-card visits-card">
+					<h2 class="section-title">Visite svolte</h2>
+					<table class="data-table">
+						<thead>
+							<tr class="head-row">
+								<th class="col-date" data-sort="date"><button type="button" class="sort">Data<span class="arrows"><i class="up"></i><i class="down"></i></span></button></th>
+								<th data-sort="cause"><button type="button" class="sort">Motivo<span class="arrows"><i class="up"></i><i class="down"></i></span></button></th>
+								<th data-sort="diagnosis"><button type="button" class="sort">Conclusioni<span class="arrows"><i class="up"></i><i class="down"></i></span></button></th>
+							</tr>
+							<tr class="filter-row">
+								<th class="col-date"><input id="f-date" type="date"></th>
+								<th><input id="f-cause" type="text" placeholder="Motivo" autocomplete="off"></th>
+								<th><input id="f-diagnosis" type="text" placeholder="Conclusioni" autocomplete="off"></th>
+							</tr>
+						</thead>
+						<tbody id="table-body"></tbody>
+					</table>
+					<p id="table-error" class="table-error"></p>
+					<div class="table-foot">
+						<span id="results-info"></span>
+						<nav id="pager" class="pager" aria-label="Pagine"></nav>
+					</div>
+				</section>
+			</div>
+
 		</div>
 	</main>
 	<script src="assets/js/common.js"></script>
 	<script src="assets/js/patient.js"></script>
+	<script src="assets/js/table.js"></script>
+	<script src="assets/js/patient-visits.js"></script>
 </body>
 </html>

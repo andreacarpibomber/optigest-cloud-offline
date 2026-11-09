@@ -8,6 +8,11 @@
 //   cells(row)   elenco dei testi delle celle della riga
 //   url(row)     indirizzo aperto cliccando la riga o l'icona
 //   stateKey     chiave di sessionStorage per ricordare filtri/ordinamento/pagina
+//   extraQuery() (facoltativo) campi fissi aggiunti alla query (es. { patient_id })
+//   rowClass(row) (facoltativo) classe CSS aggiunta alla riga (es. per evidenziarne una)
+//   autoStart    false = la tabella parte solo chiamando start() (quando serve un dato caricato dopo, es. l'ID paziente)
+//   onRender()   (facoltativo) chiamata dopo ogni caricamento di righe
+//   actions      false = senza colonna "Apri" (si apre cliccando la riga)
 // La pagina deve avere: #table-body, #table-error, #results-info, #pager, th[data-sort], e gli input dei filtri.
 
 const TABLE_PAGE_SIZE = 10;
@@ -20,7 +25,7 @@ class DataTable {
 		this.state = { sort: config.defaultSort, desc: true, page: 1 };
 		this.searchTimer = null;
 		this.requestSeq = 0;
-		document.addEventListener("page-ready", () => this.start());
+		if (config.autoStart !== false) { document.addEventListener("page-ready", () => this.start()); }
 	}
 
 	start() {
@@ -74,6 +79,7 @@ class DataTable {
 	buildQuery() {
 		const query = { sort: this.state.sort, desc: this.state.desc, page: this.state.page, page_size: TABLE_PAGE_SIZE };
 		for (const field in this.config.filters) { query[field] = $(this.config.filters[field]).value.trim(); }
+		if (this.config.extraQuery) { Object.assign(query, this.config.extraQuery()); }
 		return query;
 	}
 
@@ -93,6 +99,7 @@ class DataTable {
 		this.renderRows(result.rows);
 		this.renderInfo(result);
 		this.renderPager(result);
+		if (this.config.onRender) { this.config.onRender(); }
 	}
 
 	renderRows(rows) {
@@ -104,8 +111,12 @@ class DataTable {
 	buildRow(data) {
 		const tr = document.createElement("tr");
 		tr.className = "data-row";
+		if (this.config.rowClass) {
+			const extra = this.config.rowClass(data);
+			if (extra) { tr.classList.add(extra); }
+		}
 		for (const text of this.config.cells(data)) { tr.append(this.cell(text)); }
-		tr.append(this.actionCell(data));
+		if (this.config.actions !== false) { tr.append(this.actionCell(data)); }
 		tr.addEventListener("click", () => { location.href = this.config.url(data); });
 		return tr;
 	}

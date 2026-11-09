@@ -1,0 +1,47 @@
+/* Scheda paziente e scheda visita: stesso impianto del cloud (dati a sinistra, appuntamenti e visite a destra). */
+
+/* Schede con spigoli netti, sul proprio livello di disegno (evita ridisegni a metà nella WebView) */
+.detail-card,
+.visits-card,
+.side-card {
+	border-radius: 4px;
+	overflow: visible;
+	transform: translateZ(0);
+}
+
+.detail-card { padding: 22px 26px; background: var(--secundary); box-shadow: var(--shadow); color: var(--primary); }
+.visits-card, .side-card { padding: 16px 26px 20px; }
+.side-card[hidden] { display: none; }
+
+/* Colonne come nel cloud: 7/12 + 5/12 */
+.patient-layout { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: 24px; align-items: start; }
+.side-column { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+@media (max-width: 1100px) { .patient-layout { grid-template-columns: minmax(0, 1fr); } }
+
+.section-title { margin: 0 0 12px; font-size: 22px; font-weight: 500; color: var(--primary); }
+.detail-card .section-title:not(:first-child) { margin-top: 26px; }
+.visits-title { margin: 0 0 6px; font-size: 24px; font-weight: 500; color: var(--primary); }
+
+/* Campi in sola lettura (aspetto degli input del cloud) */
+.form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; }
+.form-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.field { min-width: 0; }
+.field-wide { margin-bottom: 14px; }
+.field-label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 500; color: var(--primary); }
+.ro-input { min-height: 38px; box-sizing: border-box; padding: 9px 12px; border-radius: 4px; background: var(--inputBg); color: var(--primary); font-size: 14px; line-height: 1.35; overflow-wrap: anywhere; }
+.ro-area { min-height: 67px; white-space: pre-wrap; }
+@media (max-width: 1300px) { .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+.tag-list { display: flex; flex-wrap: wrap; gap: 6px; min-height: 24px; }
+.tag { padding: 4px 10px; border-radius: 12px; background: var(--quaternary); color: #fff; font-size: 13px; }
+.meta-line { margin: 22px 0 0; font-size: 12px; color: var(--backgroundHeavy); }
+
+/* Appuntamenti */
+.events-list { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.7; }
+.events-list .event-li { cursor: pointer; }
+.events-list .event-li:hover { text-decoration: underline; }
+
+/* Tabella visite */
+.visits-card .data-table .col-date { width: 150px; }
+.visits-card .data-table tbody td { padding: 14px 12px; }
+.data-row.highlight-row { background: var(--background); font-weight: 600; }

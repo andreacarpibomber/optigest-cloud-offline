@@ -22,7 +22,7 @@ const LIST_COLUMNS: &str = "PatientID, PatientSurname, PatientName, PatientBirth
 const DETAIL_SQL: &str = "SELECT PatientID, PatientName, PatientSurname, PatientBirthday, PatientBirthPlace, PatientBirthProvince,
 	PatientGender, PatientFiscalCode, PatientEmail, PatientTelephones, PatientAddress, PatientCity, PatientProvince,
 	PatientPostalCode, PatientNation, PatientSendingPracticioner, PatientCurrentPractitioner, PatientTags, PatientAllergies,
-	PatientGeneralAnamnesy, PatientOcularAnamnesy, PatientInfo, PatientCreatedOn, PatientLastUpdate
+	PatientGeneralAnamnesy, PatientOcularAnamnesy, PatientInfo, PatientCreatedOn, PatientLastUpdate, PatientLastConsentDate
 	FROM Patient WHERE PatientID = :id AND PatientDeleted = 0";
 
 #[derive(Deserialize)]
@@ -101,6 +101,8 @@ pub struct PatientDetail {
 	info: String,
 	created_on: String,
 	last_update: String,
+	// data dell'ultimo consenso al trattamento dei dati (può mancare)
+	consent_date: Option<String>,
 }
 
 pub fn search(query: PatientQuery) -> Result<PatientPage, String> {
@@ -207,5 +209,6 @@ fn row_to_detail(row: &Row) -> rusqlite::Result<PatientDetail> {
 		info: row.get(21)?,
 		created_on: row.get(22)?,
 		last_update: row.get(23)?,
+		consent_date: row.get(24)?,
 	})
 }

@@ -11,6 +11,7 @@ const DEFAULT_PAGE_SIZE: u32 = 10;
 const MAX_PAGE_SIZE: u32 = 100;
 
 const VISIT_FILTER_SQL: &str = "v.VDeleted = 0
+	AND (:patient_id = 0 OR v.VPatientID = :patient_id)
 	AND (:id = '' OR CAST(v.VisitID AS TEXT) LIKE '%' || :id || '%' ESCAPE '\\')
 	AND (:date = '' OR substr(v.VDate, 1, 10) = :date)
 	AND (:cause = '' OR v.VCause LIKE '%' || :cause || '%' ESCAPE '\\')
@@ -37,6 +38,8 @@ const DETAIL_SQL: &str = "SELECT v.VisitID, v.VPatientID, COALESCE(p.PatientSurn
 #[derive(Deserialize)]
 #[serde(default)]
 pub struct VisitQuery {
+	// 0 = tutti i pazienti; altrimenti solo le visite di quel paziente (scheda paziente)
+	pub patient_id: i64,
 	pub id: String,
 	// "YYYY-MM-DD"
 	pub date: String,
@@ -58,6 +61,7 @@ pub struct VisitQuery {
 impl Default for VisitQuery {
 	fn default() -> VisitQuery {
 		VisitQuery {
+			patient_id: 0,
 			id: String::new(),
 			date: String::new(),
 			surname: String::new(),
@@ -143,7 +147,7 @@ pub fn search(query: VisitQuery) -> Result<VisitPage, String> {
 		.query_row(
 			&count_sql,
 			named_params! {
-				":id": id, ":date": date, ":cause": cause, ":diagnosis": diagnosis,
+				":patient_id": query.patient_id, ":id": id, ":date": date, ":cause": cause, ":diagnosis": diagnosis,
 				":surname": surname, ":name": name, ":birthday": birthday, ":fiscal_code": fiscal_code
 			},
 			read_total,
@@ -153,7 +157,7 @@ pub fn search(query: VisitQuery) -> Result<VisitPage, String> {
 	let found = statement
 		.query_map(
 			named_params! {
-				":id": id, ":date": date, ":cause": cause, ":diagnosis": diagnosis,
+				":patient_id": query.patient_id, ":id": id, ":date": date, ":cause": cause, ":diagnosis": diagnosis,
 				":surname": surname, ":name": name, ":birthday": birthday, ":fiscal_code": fiscal_code,
 				":limit": page_size, ":offset": offset
 			},

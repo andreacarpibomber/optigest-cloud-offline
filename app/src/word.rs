@@ -5,6 +5,8 @@ use docx_rs::{Docx, LineSpacing, Paragraph, Run, RunFonts};
 use serde::Deserialize;
 use tauri::{AppHandle, Manager};
 
+use crate::external;
+
 #[derive(Deserialize)]
 pub struct WordRequest {
 	filename: String,
@@ -28,6 +30,7 @@ pub fn export(app: &AppHandle, request: WordRequest) -> Result<String, String> {
 		.default_line_spacing(LineSpacing::new().line(276))
 		.add_paragraph(Paragraph::new().line_spacing(LineSpacing::new().after(240)).add_run(Run::new().add_text(request.title).bold().size(34)));
 	for section in request.sections {
+		if section.title == "Sintomatologia" { document = document.add_paragraph(Paragraph::new()); }
 		if !section.title.is_empty() {
 			document = document.add_paragraph(Paragraph::new().line_spacing(LineSpacing::new().before(120).after(120)).add_run(Run::new().add_text(section.title).bold().size(28)));
 		}
@@ -43,7 +46,9 @@ pub fn export(app: &AppHandle, request: WordRequest) -> Result<String, String> {
 		let _ = std::fs::remove_file(&path);
 		return Err(error.to_string());
 	}
-	Ok(path.to_string_lossy().into_owned())
+	let path = path.to_string_lossy().into_owned();
+	external::open(&path).map_err(|error| format!("Documento salvato in {}. {}", path, error))?;
+	Ok(path)
 }
 
 fn safe_name(name: &str) -> String {

@@ -103,34 +103,10 @@ function parseTags(text) {
 	return text.split(",").map(function (tag) { return tag.trim(); }).filter(Boolean);
 }
 
-// Il DB conserva i telefoni come testo JSON (array); se non lo è si mostra così com'è.
-function parsePhones(text) {
-	if (!text) { return []; }
-	try {
-		const list = JSON.parse(text);
-		if (Array.isArray(list)) { return list.map(String); }
-	} catch (error) {
-		return [text];
-	}
-	return [text];
-}
-
 function joinPlace(place, province) {
 	if (!place) { return ""; }
 	if (!province) { return place; }
 	return place + " - " + province;
-}
-
-// Età in anni compiuti, o null se la data manca o non è valida
-function ageFrom(birthday) {
-	if (!birthday) { return null; }
-	const born = new Date(birthday + "T00:00:00");
-	if (isNaN(born.getTime())) { return null; }
-	const today = new Date();
-	let age = today.getFullYear() - born.getFullYear();
-	const hadBirthday = today.getMonth() > born.getMonth() || (today.getMonth() === born.getMonth() && today.getDate() >= born.getDate());
-	if (!hadBirthday) { age -= 1; }
-	return age >= 0 ? age : null;
 }
 
 // ---- Appuntamenti (prossimi) ----

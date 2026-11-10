@@ -136,6 +136,26 @@ function formatDateTime(value) {
 	return date.toLocaleString("it-IT");
 }
 
+function parsePhones(text) {
+	if (!text) { return []; }
+	try {
+		const list = JSON.parse(text);
+		return Array.isArray(list) ? list.map(String) : [text];
+	} catch (error) {
+		return [text];
+	}
+}
+
+function ageFrom(birthday) {
+	if (!birthday) { return null; }
+	const born = new Date(birthday + "T00:00:00");
+	if (isNaN(born.getTime())) { return null; }
+	const today = new Date();
+	let age = today.getFullYear() - born.getFullYear();
+	if (today.getMonth() < born.getMonth() || (today.getMonth() === born.getMonth() && today.getDate() < born.getDate())) { age -= 1; }
+	return age >= 0 ? age : null;
+}
+
 async function initPage() {
 	const page = document.body.dataset.page;
 	if (!page) { return; }

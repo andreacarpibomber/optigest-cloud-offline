@@ -32,6 +32,7 @@ const ICON_HOME = '<i class="bx bx-bookmark"></i>';
 const ICON_LIST = '<i class="bx bx-list-ol"></i>';
 const ICON_CALENDAR = '<i class="bx bx-calendar"></i>';
 const ICON_SETTINGS = '<i class="bx bx-cog"></i>';
+const ICON_EXTERNAL = '<i class="bx bx-link-external"></i>';
 const ICON_USER = '<i class="bx bx-user"></i>';
 const ICON_LOGOUT = '<i class="bx bx-power-off"></i>';
 
@@ -295,7 +296,7 @@ function buildStatus(online, host) {
 	return status;
 }
 
-// Nome utente + avatar: al click si apre il menu con Impostazioni e Disconnetti.
+// Nome utente + avatar: al click si apre il menu con il Cloud e Disconnetti.
 function buildUserMenu(info) {
 	const wrapper = element("div", "user-menu", "");
 	const button = element("button", "user-button", "");
@@ -306,7 +307,7 @@ function buildUserMenu(info) {
 	button.append(avatar);
 	const dropdown = element("div", "user-dropdown", "");
 	dropdown.hidden = true;
-	dropdown.append(buildMenuLink("Impostazioni", ICON_SETTINGS, function () { location.href = "settings.html"; }));
+	dropdown.append(buildMenuLink("Apri il Cloud", ICON_EXTERNAL, function () { invoke("open_cloud").catch(function (error) { alert(String(error)); }); }));
 	dropdown.append(buildMenuLink("Disconnetti", ICON_LOGOUT, logout));
 	button.addEventListener("click", function (event) {
 		event.stopPropagation();
@@ -345,7 +346,7 @@ function addWordButton(titleId, buildRequest) {
 			const path = await invoke("export_word", { request: buildRequest() });
 			alert("Documento salvato in:\n" + path);
 		} catch (error) {
-			alert("Impossibile creare il documento Word: " + String(error));
+			alert("Operazione non riuscita: " + String(error));
 		} finally {
 			button.disabled = false;
 		}

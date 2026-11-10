@@ -1,7 +1,7 @@
 // Router unico delle API: tutti i comandi che la UI chiama con invoke("nome", {...}) stanno qui.
 // I moduli (session, pin, patients, ...) contengono solo la logica; qui si decide cosa è esposto e a quali condizioni.
 //
-//   Pubbliche (anche con app bloccata): boot_state, app_version, set_zoom, is_unlocked, set_pin, verify_pin, biometric_status, unlock_biometric, start_pair, get_hosts, set_host, open_legal_page, logout
+//   Pubbliche (anche con app bloccata): boot_state, app_version, set_zoom, is_unlocked, set_pin, verify_pin, biometric_status, unlock_biometric, start_pair, get_hosts, set_host, open_cloud, open_legal_page, logout
 //   Protette (richiedono lo sblocco con PIN): connect_upstream, get_counts, list_logs,
 //   search_patients, get_patient, search_visits, get_visit, list_events, list_patient_events, sync_now, get_sync_status
 //
@@ -103,6 +103,11 @@ pub async fn start_pair(app: AppHandle) -> Result<(), String> {
 #[tauri::command]
 pub fn get_hosts() -> HostsInfo {
 	globals::get_hosts()
+}
+
+#[tauri::command]
+pub fn open_cloud() -> Result<(), String> {
+	external::open(&globals::cloud_url())
 }
 
 // Apre nel browser di sistema una pagina del sito (security, legal, privacy).

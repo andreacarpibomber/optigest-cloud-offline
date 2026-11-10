@@ -110,6 +110,17 @@ pub fn open_cloud() -> Result<(), String> {
 	external::open(&globals::cloud_url())
 }
 
+#[tauri::command]
+pub fn open_cloud_record(record: String, id: i64) -> Result<(), String> {
+	let page = match record.as_str() {
+		"patient" => "patient.php",
+		"visit" => "visit.php",
+		_ => return Err("Pagina Cloud non valida".to_string()),
+	};
+	if id <= 0 { return Err("ID non valido".to_string()); }
+	external::open(&format!("{}/app/{}?id={}", globals::backend_host(), page, id))
+}
+
 // Apre nel browser di sistema una pagina del sito (security, legal, privacy).
 #[tauri::command]
 pub fn open_legal_page(page: String) -> Result<(), String> {

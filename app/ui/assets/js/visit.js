@@ -17,6 +17,7 @@ async function onReady() {
 	renderFields(visit);
 	renderData(visit.data);
 	addWordButton("visit-title", function () { return visitWord(visit, title); });
+	addCloudButton("visit-title", "visit", visit.id);
 	showPatientVisits(visit.patient_id, visit.id);
 }
 

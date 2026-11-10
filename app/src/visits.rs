@@ -31,7 +31,8 @@ const LIST_COLUMNS: &str = "v.VisitID, v.VPatientID, v.VDate, COALESCE(p.Patient
 const FROM_JOIN_SQL: &str = "FROM Visit v LEFT JOIN Patient p ON p.PatientID = v.VPatientID";
 
 const DETAIL_SQL: &str = "SELECT v.VisitID, v.VPatientID, COALESCE(p.PatientSurname, ''), COALESCE(p.PatientName, ''),
-	v.VDate, v.VCause, v.VDiagnosis, v.VData, v.VLastUpdate
+	v.VDate, v.VCause, v.VDiagnosis, v.VData, v.VLastUpdate, p.PatientBirthday,
+	COALESCE(p.PatientTelephones, ''), COALESCE(p.PatientFiscalCode, '')
 	FROM Visit v LEFT JOIN Patient p ON p.PatientID = v.VPatientID
 	WHERE v.VisitID = :id AND v.VDeleted = 0";
 
@@ -111,6 +112,9 @@ pub struct VisitDetail {
 	// testo JSON così com'è nel DB
 	data: String,
 	last_update: String,
+	patient_birthday: Option<String>,
+	patient_telephones: String,
+	patient_fiscal_code: String,
 }
 
 pub fn search(query: VisitQuery) -> Result<VisitPage, String> {
@@ -230,5 +234,8 @@ fn row_to_detail(row: &Row) -> rusqlite::Result<VisitDetail> {
 		diagnosis: row.get(6)?,
 		data: row.get(7)?,
 		last_update: row.get(8)?,
+		patient_birthday: row.get(9)?,
+		patient_telephones: row.get(10)?,
+		patient_fiscal_code: row.get(11)?,
 	})
 }

@@ -22,7 +22,9 @@ async function onReady() {
 }
 
 function visitWord(visit, title) {
-	const fields = Array.from($("visit-fields").querySelectorAll("dt")).map(function (label) { return [label.textContent, label.nextElementSibling.textContent.trim()]; });
+	const fields = [["ID visita", String(visit.id)]];
+	fields.push(...Array.from($("visit-fields").querySelectorAll("dt")).map(function (label) { return [label.textContent, label.nextElementSibling.textContent.trim()]; }));
+	fields.push(["Ultimo aggiornamento", formatDateTime(visit.last_update)]);
 	const sections = [{ title: "Dati visita", rows: fields }];
 	document.querySelectorAll("#visit-blocks .visit-block").forEach(function (block) { sections.push(visitWordSection(block)); });
 	const patient = (visit.patient_surname + " " + visit.patient_name).trim();
@@ -72,19 +74,25 @@ function addWordTableRows(rows, eyeName, table) {
 function renderFields(visit) {
 	const list = $("visit-fields");
 	list.replaceChildren();
-	addField(list, "ID visita", String(visit.id));
 	addField(list, "Data", formatDate(visit.date.slice(0, 10)));
 	addPatientField(list, visit);
+	const age = ageFrom(visit.patient_birthday);
+	const birthday = formatDate(visit.patient_birthday);
+	addField(list, "Data di nascita", birthday ? birthday + (age === null ? "" : " (" + age + " anni)") : "-");
+	addField(list, "Telefono", parsePhones(visit.patient_telephones).join(" - ") || "-");
+	addField(list, "Codice Fiscale", visit.patient_fiscal_code || "-");
 	addField(list, "Motivo", visit.cause);
 	addField(list, "Conclusioni", visit.diagnosis);
-	addField(list, "Ultimo aggiornamento", formatDateTime(visit.last_update));
+	$("visit-id").textContent = String(visit.id);
+	$("visit-updated").textContent = formatDateTime(visit.last_update);
 }
 
 // Il paziente è un link alla sua scheda.
 function addPatientField(list, visit) {
 	const name = (visit.patient_surname + " " + visit.patient_name).trim() || "Paziente " + visit.patient_id;
-	const link = element("a", "", name);
+	const link = element("a", "visit-patient-link", name);
 	link.href = "patient.html?id=" + encodeURIComponent(visit.patient_id);
+	link.title = "Apri scheda paziente";
 	const field = element("div", "field", "");
 	field.append(element("dt", "field-label", "Paziente"));
 	const value = element("dd", "ro-input", "");
@@ -163,8 +171,6 @@ function renderData(text) {
 		const rows = others.map((key) => fieldRow(key, typeof data[key] === "object" ? JSON.stringify(data[key]) : decodeEntities(String(data[key]))));
 		addNode(container, blockCard("Altri dati", rows));
 	}
-	$("visit-data").textContent = JSON.stringify(data, null, 2);
-	$("visit-data-box").hidden = false;
 }
 
 // Chiavi di primo livello toccate da un blocco (per capire cosa resta in "Altri dati").

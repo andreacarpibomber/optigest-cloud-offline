@@ -42,7 +42,7 @@
 .visit-fields dd { margin: 0; }
 .visit-blocks { display: block; margin-top: 0; }
 .visit-block { min-height: 0; margin-top: 26px; padding: 0; border-radius: 0; }
-.visit-main .debug { border-radius: 4px; }
+.visit-patient-link { color: var(--quaternary); font-weight: 600; }
 
 /* Appuntamenti */
 .events-list { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.7; }

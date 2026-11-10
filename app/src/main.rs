@@ -23,6 +23,7 @@ mod session;
 mod stats;
 mod sync;
 mod visits;
+mod word;
 
 // Argomento con cui il sistema avvia l'app al login: parte nascosta, solo nella barra di sistema.
 const BACKGROUND_ARG: &str = "--background";
@@ -59,6 +60,7 @@ fn main() {
 			api::get_patient,
 			api::search_visits,
 			api::get_visit,
+			api::export_word,
 			api::list_events,
 			api::list_patient_events,
 			api::sync_now,

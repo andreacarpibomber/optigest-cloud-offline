@@ -12,10 +12,60 @@ async function onReady() {
 		showError(String(error));
 		return;
 	}
-	$("visit-title").textContent = "Visita del " + formatDate(visit.date.slice(0, 10));
+	const title = "Visita del " + formatDate(visit.date.slice(0, 10));
+	$("visit-title").textContent = title;
 	renderFields(visit);
 	renderData(visit.data);
+	addWordButton("visit-title", function () { return visitWord(visit, title); });
 	showPatientVisits(visit.patient_id, visit.id);
+}
+
+function visitWord(visit, title) {
+	const fields = Array.from($("visit-fields").querySelectorAll("dt")).map(function (label) { return [label.textContent, label.nextElementSibling.textContent.trim()]; });
+	const sections = [{ title: "Dati visita", rows: fields }];
+	document.querySelectorAll("#visit-blocks .visit-block").forEach(function (block) { sections.push(visitWordSection(block)); });
+	const patient = (visit.patient_surname + " " + visit.patient_name).trim();
+	return {
+		filename: "Visita " + visit.date.slice(0, 10).split("-").reverse().join("-") + (patient ? " " + patient : ""),
+		title: "Riepilogo visita - " + title,
+		sections: sections,
+	};
+}
+
+function visitWordSection(block) {
+	const heading = block.querySelector(".block-title").textContent.trim();
+	const rows = [];
+	block.querySelectorAll(":scope > .eyes > .eye").forEach(function (eye) {
+		const eyeName = eye.querySelector(".eye-label").textContent.trim();
+		const eyeRows = eye.querySelectorAll(":scope > .block-row");
+		const text = eye.querySelector(":scope > .block-text");
+		const table = eye.querySelector(":scope > table");
+		eyeRows.forEach(function (row) { rows.push(wordRow(row, eyeName)); });
+		if (text) { rows.push([eyeName, text.textContent.trim()]); }
+		if (table) { addWordTableRows(rows, eyeName, table); }
+		if (!eyeRows.length && !text && !table) { rows.push([eyeName, "-"]); }
+	});
+	block.querySelectorAll(":scope > .block-row").forEach(function (row) { rows.push(wordRow(row, "")); });
+	const textFields = block.querySelector(":scope > .text-fields");
+	if (textFields) {
+		const children = Array.from(textFields.children);
+		for (let index = 0; index < children.length; index += 2) { rows.push([children[index].textContent.trim(), children[index + 1].textContent.trim()]); }
+	}
+	return { title: heading, rows: rows };
+}
+
+function wordRow(row, prefix) {
+	return [(prefix ? prefix + " - " : "") + row.children[0].textContent.trim(), row.children[1].textContent.trim()];
+}
+
+function addWordTableRows(rows, eyeName, table) {
+	const tableRows = Array.from(table.rows);
+	const headers = Array.from(tableRows.shift().cells).slice(1).map(function (cell) { return cell.textContent.trim(); });
+	tableRows.forEach(function (row) {
+		const cells = Array.from(row.cells).map(function (cell) { return cell.textContent.trim(); });
+		const values = cells.slice(1).map(function (value, index) { return value ? headers[index] + ": " + value : ""; }).filter(Boolean);
+		rows.push([eyeName + " - " + cells[0], values.join(" · ")]);
+	});
 }
 
 function renderFields(visit) {

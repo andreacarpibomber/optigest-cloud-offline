@@ -17,8 +17,9 @@ async function onReady() {
 		showError(String(error));
 		return;
 	}
-	renderTitle(patient);
+	const title = renderTitle(patient);
 	renderFields(patient);
+	addWordButton("patient-title", function () { return patientWord(patient, title); });
 	await renderAppointments(id);
 	forceRepaint();
 }
@@ -31,7 +32,23 @@ function renderTitle(patient) {
 	parts.push(name);
 	const age = ageFrom(patient.birthday);
 	if (age !== null) { parts.push("(" + age + ")"); }
-	$("patient-title").textContent = parts.join(" ");
+	const title = parts.join(" ");
+	$("patient-title").textContent = title;
+	return title;
+}
+
+function patientWord(patient, title) {
+	const address = [patient.address, patient.postal_code, patient.city, patient.province, NATIONS[patient.nation] || patient.nation].filter(Boolean).join(", ");
+	return {
+		filename: "Riepilogo paziente " + patient.surname + " " + patient.name,
+		title: "Riepilogo dati paziente - " + title,
+		sections: [{ title: "", rows: [
+			["Nome", patient.name], ["Cognome", patient.surname], ["Genere", GENDERS[patient.gender] || "Non impostato"],
+			["Data di nascita", formatDate(patient.birthday)], ["Luogo di nascita", joinPlace(patient.birth_place, patient.birth_province)],
+			["Codice Fiscale", patient.fiscal_code], ["Indirizzo", address], ["Recapiti telefonici", parsePhones(patient.telephones).join(" - ")],
+			["Email", patient.email], ["Ultimo aggiornamento", formatDateTime(patient.last_update)],
+		] }],
+	};
 }
 
 function renderFields(patient) {

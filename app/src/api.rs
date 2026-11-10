@@ -21,6 +21,7 @@ use crate::session::{self, UpstreamInfo};
 use crate::stats::{self, Counts};
 use crate::sync::{self, SyncReport, SyncStatus};
 use crate::visits::{self, VisitDetail, VisitPage, VisitQuery};
+use crate::word::{self, WordRequest};
 use tauri::{AppHandle, Emitter};
 
 // ---- Sessione ----
@@ -152,6 +153,12 @@ pub fn search_visits(query: VisitQuery) -> Result<VisitPage, String> {
 pub fn get_visit(id: i64) -> Result<VisitDetail, String> {
 	session::require_unlocked()?;
 	visits::get(id)
+}
+
+#[tauri::command]
+pub fn export_word(app: AppHandle, request: WordRequest) -> Result<String, String> {
+	session::require_unlocked()?;
+	word::export(&app, request)
 }
 
 // Appuntamenti tra due istanti ("YYYY-MM-DD HH:MM:SS", ora del cloud) per il calendario.

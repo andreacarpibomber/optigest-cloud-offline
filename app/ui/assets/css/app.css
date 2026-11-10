@@ -79,6 +79,8 @@ body.page {
 .content { width: 100%; box-sizing: border-box; max-width: 1100px; margin: 0 auto; padding: 36px 32px 40px; }
 .greeting,
 .page-title { margin: 0 0 28px; font-size: 30px; font-weight: 800; line-height: 1.25; }
+.page-title.title-with-action { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
+.page-title .word-button { flex: none; margin-left: auto; }
 .back { display: inline-block; margin-bottom: 14px; font-size: 13px; font-weight: 600; color: var(--quinquernary); }
 .placeholder { color: var(--backgroundHeavy); font-size: 15px; }
 

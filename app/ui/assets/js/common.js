@@ -333,5 +333,26 @@ function element(tag, className, text) {
 	return node;
 }
 
+function addWordButton(titleId, buildRequest) {
+	const title = $(titleId);
+	const button = element("button", "btn-primary word-button", "");
+	button.type = "button";
+	button.title = "Scarica riepilogo Word";
+	button.innerHTML = '<i class="bx bx-printer"></i> Stampa';
+	button.addEventListener("click", async function () {
+		button.disabled = true;
+		try {
+			const path = await invoke("export_word", { request: buildRequest() });
+			alert("Documento salvato in:\n" + path);
+		} catch (error) {
+			alert("Impossibile creare il documento Word: " + String(error));
+		} finally {
+			button.disabled = false;
+		}
+	});
+	title.classList.add("title-with-action");
+	title.append(button);
+}
+
 // Dopo DOMContentLoaded tutti gli script della pagina (es. homepage.js) hanno già registrato i loro listener.
 document.addEventListener("DOMContentLoaded", initPage);

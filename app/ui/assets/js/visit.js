@@ -85,16 +85,20 @@ function addPatientField(list, visit) {
 	const name = (visit.patient_surname + " " + visit.patient_name).trim() || "Paziente " + visit.patient_id;
 	const link = element("a", "", name);
 	link.href = "patient.html?id=" + encodeURIComponent(visit.patient_id);
-	list.append(element("dt", "", "Paziente"));
-	const value = element("dd", "", "");
+	const field = element("div", "field", "");
+	field.append(element("dt", "field-label", "Paziente"));
+	const value = element("dd", "ro-input", "");
 	value.append(link);
-	list.append(value);
+	field.append(value);
+	list.append(field);
 }
 
 function addField(list, label, value) {
 	if (!value) { return; }
-	list.append(element("dt", "", label));
-	list.append(element("dd", "", value));
+	const field = element("div", "field", "");
+	field.append(element("dt", "field-label", label));
+	field.append(element("dd", "ro-input", value));
+	list.append(field);
 }
 
 // I dati sono JSON; se non lo fossero si mostrano così come sono.
@@ -191,8 +195,8 @@ function buildBlock(data, block) {
 function addNode(parent, node) { if (node) { parent.append(node); } }
 
 function blockCard(title, children) {
-	const card = element("section", "card-widget visit-block", "");
-	card.append(element("h2", "block-title", title));
+	const card = element("section", "visit-block", "");
+	card.append(element("h2", "section-title block-title", title));
 	children.forEach((child) => card.append(child));
 	return card;
 }

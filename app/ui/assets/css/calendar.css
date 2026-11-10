@@ -26,6 +26,8 @@
 .fc .fc-toolbar-title { font-size: 24px; font-weight: 500; }
 .fc .fc-button { border-radius: 4px; font-family: var(--main-font); font-size: 14px; text-transform: none; box-shadow: none !important; }
 .fc .fc-button:disabled { opacity: .45; }
+.fc .fc-icon-chevron-left::before { content: "‹"; font-family: Arial, sans-serif; }
+.fc .fc-icon-chevron-right::before { content: "›"; font-family: Arial, sans-serif; }
 .fc a { color: inherit; text-decoration: none; }
 .fc .fc-col-header-cell-cushion { padding: 8px 4px; font-weight: 600; }
 .fc .fc-timegrid-slot-label-cushion { font-size: 13px; }

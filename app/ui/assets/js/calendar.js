@@ -18,8 +18,11 @@ function startCalendar() {
 		firstDay: 1,
 		initialView: "timeGridWeek",
 		initialDate: new URLSearchParams(location.search).get("date") || undefined,
-		headerToolbar: { left: "title", right: "prev,next today dayGridMonth,timeGridWeek,timeGridDay,listWeek" },
+		customButtons: { printList: { text: "Stampa", click: exportAppointments } },
+		headerToolbar: { left: "title", right: "prev,next today dayGridMonth,timeGridWeek,timeGridDay,listWeek printList" },
 		height: "calc(100vh - 190px)",
+		navLinks: true,
+		navLinkDayClick: "timeGridDay",
 		nowIndicator: true,
 		slotMinTime: CALENDAR_START_HOUR,
 		slotMaxTime: CALENDAR_END_HOUR,
@@ -40,6 +43,23 @@ function startCalendar() {
 	$("event-close").addEventListener("click", closeEvent);
 	$("event-overlay").addEventListener("click", function (event) { if (event.target === $("event-overlay")) { closeEvent(); } });
 	document.addEventListener("keydown", function (event) { if (event.key === "Escape") { closeEvent(); } });
+}
+
+async function exportAppointments() {
+	const start = calendar.view.activeStart;
+	const end = calendar.view.activeEnd;
+	const events = calendar.getEvents().filter(function (event) { return event.start >= start && event.start < end; }).sort(function (a, b) { return a.start - b.start; });
+	const rows = events.length ? events.map(function (event) { return [describeWhen(event.start, event.end), event.title]; }) : [["Appuntamenti", "Nessun appuntamento"]];
+	try {
+		const path = await invoke("export_word", { request: {
+			filename: "Appuntamenti " + calendar.view.title,
+			title: "Appuntamenti - " + calendar.view.title,
+			sections: [{ title: "", rows: rows }],
+		} });
+		alert("Documento salvato in:\n" + path);
+	} catch (error) {
+		alert("Operazione non riuscita: " + String(error));
+	}
 }
 
 // FullCalendar chiede gli appuntamenti della finestra visibile; le date si passano come testo "locale", come nel DB.

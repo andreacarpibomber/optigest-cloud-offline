@@ -59,3 +59,5 @@ L'installazione iniziale è gestita da EosMedTech.
 ## Licenza
 
 Proprietario. © EosMedTech Srl.
+
+

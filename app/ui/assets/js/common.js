@@ -355,5 +355,15 @@ function addWordButton(titleId, buildRequest) {
 	title.append(button);
 }
 
+function addCloudButton(titleId, record, id) {
+	const button = element("button", "btn-primary", "");
+	button.type = "button";
+	button.innerHTML = '<i class="bx bx-cloud"></i> Apri sul Cloud';
+	button.addEventListener("click", function () {
+		invoke("open_cloud_record", { record: record, id: id }).catch(function (error) { alert(String(error)); });
+	});
+	$(titleId).append(button);
+}
+
 // Dopo DOMContentLoaded tutti gli script della pagina (es. homepage.js) hanno già registrato i loro listener.
 document.addEventListener("DOMContentLoaded", initPage);

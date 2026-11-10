@@ -20,6 +20,7 @@ async function onReady() {
 	const title = renderTitle(patient);
 	renderFields(patient);
 	addWordButton("patient-title", function () { return patientWord(patient, title); });
+	addCloudButton("patient-title", "patient", patient.id);
 	await renderAppointments(id);
 	forceRepaint();
 }

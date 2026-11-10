@@ -1,6 +1,7 @@
 /* Calendario (FullCalendar, in locale): colori e pulsanti come OptiGest Cloud. */
 
 .calendar-card { padding: 20px 24px; border-radius: 4px; background: var(--secundary); box-shadow: var(--shadow); }
+.calendar-cloud { flex: none; margin-left: auto; }
 
 .fc {
 	--fc-border-color: var(--backgroundGrey);

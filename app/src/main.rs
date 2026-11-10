@@ -53,6 +53,7 @@ fn main() {
 			api::start_pair,
 			api::get_hosts,
 			api::open_cloud,
+			api::open_cloud_calendar,
 			api::open_cloud_record,
 			api::set_host,
 			api::open_legal_page,

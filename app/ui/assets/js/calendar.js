@@ -40,6 +40,7 @@ function startCalendar() {
 	calendar.render();
 	// Dopo il caricamento dei font le larghezze cambiano: si ricalcola il layout.
 	document.fonts.ready.then(function () { calendar.updateSize(); });
+	$("calendar-cloud").addEventListener("click", function () { invoke("open_cloud_calendar").catch(function (error) { alert(String(error)); }); });
 	$("event-close").addEventListener("click", closeEvent);
 	$("event-overlay").addEventListener("click", function (event) { if (event.target === $("event-overlay")) { closeEvent(); } });
 	document.addEventListener("keydown", function (event) { if (event.key === "Escape") { closeEvent(); } });

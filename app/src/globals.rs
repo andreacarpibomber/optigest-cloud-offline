@@ -55,6 +55,10 @@ pub fn backend_host() -> String {
 	format!("https://{}", backend_domain())
 }
 
+pub fn cloud_url() -> String {
+	format!("{}/app/", backend_host())
+}
+
 pub fn login_signup_url() -> String {
 	format!("{}{}", backend_host(), LOGIN_SIGNUP_ENDPOINT)
 }

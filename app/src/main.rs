@@ -52,6 +52,7 @@ fn main() {
 			api::unlock_biometric,
 			api::start_pair,
 			api::get_hosts,
+			api::open_cloud,
 			api::set_host,
 			api::open_legal_page,
 			api::get_counts,

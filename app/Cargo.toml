@@ -39,6 +39,9 @@ windows = { version = "0.61", features = ["Foundation", "Security_Credentials_UI
 [target.'cfg(target_os = "linux")'.dependencies]
 keyring = { version = "3", features = ["sync-secret-service"] }
 
+[features]
+custom-protocol = ["tauri/custom-protocol"]
+
 [profile.release]
 lto = true
 codegen-units = 1

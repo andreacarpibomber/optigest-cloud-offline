@@ -142,13 +142,16 @@ fn on_tray_menu(app: &tauri::AppHandle, event: tauri::menu::MenuEvent) {
 	}
 }
 
-// Chiudere la finestra non chiude l'app: la nasconde e la blocca (al ritorno serve di nuovo il PIN).
+// Chiudere la finestra non chiude l'app: la nasconde e la blocca (al ritorno serve di nuovo il PIN). 
 fn on_window_event(window: &tauri::Window, event: &tauri::WindowEvent) {
-	use tauri::Manager;
-	if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-		api.prevent_close();
-		hide_main_window(window.app_handle());
-	}
+    use tauri::Manager;
+    if window.label() != MAIN_WINDOW {
+        return;
+    }
+    if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+        api.prevent_close();
+        hide_main_window(window.app_handle());
+    }
 }
 
 fn hide_main_window(app: &tauri::AppHandle) {

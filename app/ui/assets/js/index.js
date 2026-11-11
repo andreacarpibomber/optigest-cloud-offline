@@ -192,6 +192,7 @@ function logoPressEnd() {
 $("pin-form").addEventListener("submit", submitPin);
 $("btn-repair").addEventListener("click", startPair);
 $("btn-biometric").addEventListener("click", tryBiometric);
+$("btn-support").addEventListener("click", function () { invoke("open_support").catch(function (error) { $("pin-error").textContent = String(error); }); });
 $("host-cancel").addEventListener("click", function () { $("host-overlay").classList.add("hidden"); });
 $("logo").addEventListener("pointerdown", logoPressStart);
 $("logo").addEventListener("pointerup", logoPressEnd);

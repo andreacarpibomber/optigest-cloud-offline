@@ -111,6 +111,11 @@ pub fn open_cloud() -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn open_support() -> Result<(), String> {
+	external::open(&format!("{}/support", globals::backend_host()))
+}
+
+#[tauri::command]
 pub fn open_cloud_calendar() -> Result<(), String> {
 	external::open(&format!("{}/app/calendar.php?v=2", globals::backend_host()))
 }

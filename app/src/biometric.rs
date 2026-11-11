@@ -91,14 +91,25 @@ mod platform {
 
 #[cfg(target_os = "windows")]
 mod platform {
+	use std::ptr;
 	use windows::core::HSTRING;
 	use windows::Security::Credentials::UI::{UserConsentVerificationResult, UserConsentVerifier, UserConsentVerifierAvailability};
+	use windows::Win32::Devices::BiometricFramework::{WinBioEnumBiometricUnits, WinBioFree, WINBIO_UNIT_SCHEMA};
+
+	const WINBIO_TYPE_FINGERPRINT: u32 = 0x00000008;
 
 	pub fn is_available() -> bool {
-		match UserConsentVerifier::CheckAvailabilityAsync().and_then(|operation| operation.get()) {
-			Ok(availability) => availability == UserConsentVerifierAvailability::Available,
-			Err(_) => false,
-		}
+		has_fingerprint_reader()
+			&& matches!(UserConsentVerifier::CheckAvailabilityAsync().and_then(|operation| operation.get()),
+				Ok(availability) if availability == UserConsentVerifierAvailability::Available)
+	}
+
+	fn has_fingerprint_reader() -> bool {
+		let mut units: *mut WINBIO_UNIT_SCHEMA = ptr::null_mut();
+		let mut count = 0;
+		let available = unsafe { WinBioEnumBiometricUnits(WINBIO_TYPE_FINGERPRINT, &mut units, &mut count) }.is_ok() && count > 0;
+		if !units.is_null() { let _ = unsafe { WinBioFree(units.cast()) }; }
+		available
 	}
 
 	pub fn authenticate(reason: &str) -> Result<bool, String> {

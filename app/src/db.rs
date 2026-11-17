@@ -11,8 +11,9 @@
 // Per modifiche future: aggiornare gli script in db/ e incrementare SCHEMA_VERSION.
 
 use crate::secure_store::err_to_string;
-use rusqlite::{Connection, Row};
+use rusqlite::{Connection, OpenFlags, Row};
 use std::fs;
+use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 use tauri::{AppHandle, Manager};
 
@@ -29,14 +30,39 @@ const SCHEMA_SCRIPTS: [&str; 6] = [
 ];
 
 static DB: Mutex<Option<Connection>> = Mutex::new(None);
+static KEY: Mutex<Option<String>> = Mutex::new(None);
+static PATH: Mutex<Option<PathBuf>> = Mutex::new(None);
 
-pub fn init(app: &AppHandle) -> Result<(), String> {
+pub fn init(app: &AppHandle, key: &str) -> Result<(), String> {
+	if is_open() { return Ok(()); }
 	let dir = app.path().app_data_dir().map_err(err_to_string)?;
 	fs::create_dir_all(&dir).map_err(err_to_string)?;
-	let connection = Connection::open(dir.join(DB_FILE)).map_err(err_to_string)?;
+	let path = dir.join(DB_FILE);
+	let connection = open(&path, key, OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_CREATE)?;
 	install(&connection)?;
+	*KEY.lock().unwrap_or_else(PoisonError::into_inner) = Some(key.to_string());
+	*PATH.lock().unwrap_or_else(PoisonError::into_inner) = Some(path);
 	*lock() = Some(connection);
 	Ok(())
+}
+
+pub fn is_open() -> bool {
+	lock().is_some()
+}
+
+pub fn close() {
+	*lock() = None;
+	*KEY.lock().unwrap_or_else(PoisonError::into_inner) = None;
+	*PATH.lock().unwrap_or_else(PoisonError::into_inner) = None;
+}
+
+pub fn path() -> Result<PathBuf, String> {
+	PATH.lock().unwrap_or_else(PoisonError::into_inner).clone().ok_or("DB non inizializzato".to_string())
+}
+
+pub fn open_read_only(path: &Path) -> Result<Connection, String> {
+	let key = KEY.lock().unwrap_or_else(PoisonError::into_inner).clone().ok_or("Chiave DB non disponibile".to_string())?;
+	open(path, &key, OpenFlags::SQLITE_OPEN_READ_ONLY)
 }
 
 pub fn lock() -> MutexGuard<'static, Option<Connection>> {
@@ -48,6 +74,15 @@ pub fn get<'a>(guard: &'a MutexGuard<'static, Option<Connection>>) -> Result<&'a
 		Some(connection) => Ok(connection),
 		None => Err("DB non inizializzato".to_string()),
 	}
+}
+
+fn open(path: &Path, key: &str, flags: OpenFlags) -> Result<Connection, String> {
+	if key.len() != 64 || !key.bytes().all(|byte| byte.is_ascii_hexdigit()) { return Err("Chiave DB non valida".to_string()); }
+	let connection = Connection::open_with_flags(path, flags).map_err(err_to_string)?;
+	connection.execute_batch(&format!("PRAGMA key = \"x'{}'\";", key)).map_err(err_to_string)?;
+	let _: String = connection.query_row("PRAGMA cipher_version", [], |row| row.get(0)).map_err(|_| "SQLCipher non disponibile".to_string())?;
+	connection.query_row("SELECT count(*) FROM sqlite_master", [], read_version).map_err(|_| "Database non cifrato oppure chiave non valida".to_string())?;
+	Ok(connection)
 }
 
 fn install(connection: &Connection) -> Result<(), String> {

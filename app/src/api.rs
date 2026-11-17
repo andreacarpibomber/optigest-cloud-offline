@@ -62,19 +62,20 @@ pub async fn connect_upstream() -> Result<UpstreamInfo, String> {
 // ---- PIN e pair ----
 
 #[tauri::command]
-pub fn set_pin(pin: String) -> Result<(), String> {
-	pin::set_pin(pin)
+pub async fn set_pin(app: AppHandle, pin: String) -> Result<(), String> {
+	let key = sync::fetch_offline_key().await?;
+	pin::set_pin(&app, pin, &key)
 }
 
 #[tauri::command]
-pub fn change_pin(current: String, new_pin: String) -> Result<PinOutcome, String> {
+pub fn change_pin(app: AppHandle, current_pin: String, new_pin: String) -> Result<PinOutcome, String> {
 	session::require_unlocked()?;
-	pin::change_pin(current, new_pin)
+	pin::change_pin(&app, current_pin, new_pin)
 }
 
 #[tauri::command]
-pub fn verify_pin(pin: String) -> Result<PinOutcome, String> {
-	pin::verify_pin(pin)
+pub fn verify_pin(app: AppHandle, pin: String) -> Result<PinOutcome, String> {
+	pin::verify_pin(&app, pin)
 }
 
 // Impronta (pubbliche per la schermata del PIN; l'attivazione richiede l'app sbloccata)

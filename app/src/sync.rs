@@ -34,7 +34,6 @@ const MAX_BATCH: u32 = 2000;
 const SAFETY_WINDOW_SECS: u32 = 60;
 
 const STATE_LAST_SYNC: &str = "last_sync_on";
-const STATE_DEVICE_ID: &str = "device_id";
 const FULL_PENDING: &str = "pending";
 const FULL_DONE: &str = "done";
 
@@ -138,6 +137,32 @@ pub async fn fetch_license() -> Result<(String, String), String> {
 	let client = reqwest::Client::builder().timeout(Duration::from_secs(REQUEST_TIMEOUT_SECS)).cookie_store(true).build().map_err(err_to_string)?;
 	let response: LicenseResponse = call(&client, &token, &device_id, &[("fn", "license".to_string())]).await?;
 	Ok((response.license.payload, response.license.signature))
+}
+
+// Chiave SQLCipher dello studio corrente. Non usare httplog: la risposta contiene il segreto.
+pub async fn fetch_offline_key() -> Result<String, String> {
+	let token = secure_store::get(secure_store::KEY_TOKEN).unwrap_or_default();
+	if token.is_empty() { return Err(SESSION_EXPIRED.to_string()); }
+	let device_id = device_id()?;
+	let client = reqwest::Client::builder().timeout(Duration::from_secs(REQUEST_TIMEOUT_SECS)).build().map_err(err_to_string)?;
+	let response = client
+		.get(globals::sync_url())
+		.query(&[("fn", "getofflinecpkey"), ("tkn", token.as_str()), ("device", device_id.as_str())])
+		.header("Accept", "application/json")
+		.send()
+		.await
+		.map_err(|error| if error.is_connect() || error.is_timeout() { "Cloud non raggiungibile".to_string() } else { "Richiesta della chiave non riuscita".to_string() })?;
+	let status = response.status().as_u16();
+	let body = response.text().await.map_err(|_| "Risposta della chiave non leggibile".to_string())?;
+	if status == 401 { return Err(SESSION_EXPIRED.to_string()); }
+	if status != 200 { return Err(describe_http_error(status, &body)); }
+	let value: Value = serde_json::from_str(&body).map_err(describe_parse_error)?;
+	if value.get("success").and_then(Value::as_bool) != Some(true) { return Err(describe_cloud_error(&value)); }
+	let key = value.get("key").and_then(Value::as_str).ok_or("Chiave offline mancante nella risposta del cloud".to_string())?.trim();
+	if key.len() != 64 || !key.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+		return Err("Chiave offline non valida".to_string());
+	}
+	Ok(key.to_ascii_lowercase())
 }
 
 #[derive(Deserialize)]
@@ -396,12 +421,7 @@ fn mark_synced() -> Result<(), String> {
 
 // Identificativo casuale di questa installazione (per il log lato cloud), creato al primo uso.
 fn device_id() -> Result<String, String> {
-	let guard = db::lock();
-	let connection = db::get(&guard)?;
-	if let Some(existing) = get_state(connection, STATE_DEVICE_ID)? { return Ok(existing); }
-	let created: String = connection.query_row("SELECT lower(hex(randomblob(16)))", [], read_text).map_err(err_to_string)?;
-	set_state(connection, STATE_DEVICE_ID, &created)?;
-	Ok(created)
+	crate::config::device_id()
 }
 
 fn load_cursor(table: &SyncTable) -> Result<Option<Cursor>, String> {

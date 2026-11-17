@@ -95,9 +95,7 @@ fn main() {
 fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 	secure_store::init(app.handle())?;
 	config::init(app.handle())?;
-	db::init(app.handle())?;
 	backup::init(app.handle())?;
-	let _ = logdb::write(&format!("Avvio applicazione (host: {})", globals::backend_domain()));
 	enable_autostart_once(app);
 	setup_tray(app)?;
 	autosync::start(app.handle().clone());

@@ -96,8 +96,9 @@ pub fn require_unlocked() -> Result<(), String> {
 
 pub fn logout() {
 	set_unlocked(false);
-	secure_store::clear_session();
 	let _ = logdb::write("Logout");
+	crate::db::close();
+	secure_store::clear_session();
 }
 
 fn info(online: bool, valid: bool, profile: Profile, raw: String) -> UpstreamInfo {

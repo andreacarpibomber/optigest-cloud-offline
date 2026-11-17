@@ -3,18 +3,18 @@
 // Regole:
 //   - il backup parte solo se il DB è integro (PRAGMA integrity_check) e non c'è una sincronizzazione
 //     in corso o incompleta (uno scarico completo a metà darebbe una copia parziale)
-//   - la copia (VACUUM INTO) viene verificata (integrità e numero di pazienti/visite) prima di diventare un backup
+//   - la copia cifrata viene verificata (integrità e numero di pazienti/visite) prima di diventare un backup
 //   - la rotazione elimina le copie vecchie solo dopo un backup riuscito: se qualcosa va storto restano tutte
 //   - ogni errore è salvato in backups/last_error.txt e mostrato all'utente fino al prossimo backup riuscito
 //   - automatico: dopo una sincronizzazione riuscita, al massimo una volta ogni 24 ore
-// Le copie sono file SQLite normali (contengono dati dei pazienti: stessa cartella e stesse protezioni del DB).
+// Le copie mantengono la cifratura SQLCipher del DB principale.
 
 use crate::config;
 use crate::db;
 use crate::logdb;
 use crate::secure_store::err_to_string;
 use crate::sync;
-use rusqlite::{params, Connection, OpenFlags};
+use rusqlite::{params, Connection};
 use serde::Serialize;
 use std::fs;
 use std::path::PathBuf;
@@ -116,7 +116,7 @@ fn run_checked(force: bool) -> Result<BackupOutcome, String> {
 		if final_path.exists() { return Ok(skipped("Backup già presente per questo secondo")); }
 		let _ = fs::remove_file(&temp_path);
 		live_counts = counts(connection)?;
-		if let Err(error) = connection.execute("VACUUM INTO ?1", params![temp_path.to_string_lossy().to_string()]) {
+		if let Err(error) = fs::copy(db::path()?, &temp_path) {
 			let _ = fs::remove_file(&temp_path);
 			return Err(format!("Copia del DB non riuscita: {}", error));
 		}
@@ -157,7 +157,7 @@ fn counts(connection: &Connection) -> Result<(i64, i64), String> {
 
 // La copia si apre da sola, è integra e ha gli stessi numeri del DB in uso.
 fn verify_copy(path: &PathBuf, expected: (i64, i64)) -> Result<(), String> {
-	let copy = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_ONLY).map_err(err_to_string)?;
+	let copy = db::open_read_only(path)?;
 	check_integrity(&copy)?;
 	if counts(&copy)? != expected { return Err("numero di pazienti o visite diverso dal DB in uso".to_string()); }
 	Ok(())

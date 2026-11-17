@@ -2,6 +2,7 @@
 // Il PIN resta sempre: serve per il primo sblocco, per attivare l'impronta e come alternativa.
 // L'impronta non memorizza nulla in app: il sistema operativo risponde solo sì/no.
 
+use crate::db;
 use crate::logdb;
 use crate::secure_store;
 use crate::session;
@@ -43,6 +44,8 @@ pub async fn set_enabled(enabled: bool) -> Result<(), String> {
 // Sblocco dalla schermata del PIN. false = annullato o non riconosciuto: si ripiega sul PIN.
 pub async fn unlock() -> Result<bool, String> {
 	if !is_enabled() || !platform::is_available() { return Ok(false); }
+	// Dopo un nuovo avvio serve prima il PIN per decifrare la chiave e aprire il DB.
+	if !db::is_open() { return Ok(false); }
 	let token = secure_store::get(secure_store::KEY_TOKEN).unwrap_or_default();
 	if token.is_empty() || secure_store::get(secure_store::KEY_PIN_HASH).is_none() { return Ok(false); }
 	if !authenticate().await? { return Ok(false); }

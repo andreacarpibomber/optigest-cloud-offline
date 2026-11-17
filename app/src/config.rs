@@ -5,6 +5,7 @@
 
 use crate::backup;
 use crate::secure_store::err_to_string;
+use argon2::password_hash::rand_core::{OsRng, RngCore};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -23,6 +24,9 @@ struct Config {
 	// numero di copie del DB locale da tenere (rotazione dei backup)
 	#[serde(default = "default_backup_keep")]
 	backup_keep: u32,
+	// Identificativo non segreto di questa installazione, necessario al cloud anche prima di aprire il DB.
+	#[serde(default)]
+	device_id: String,
 }
 
 struct State {
@@ -79,6 +83,17 @@ pub fn set_backup_keep(keep: u32) -> Result<(), String> {
 	save(state)
 }
 
+pub fn device_id() -> Result<String, String> {
+	let mut guard = lock();
+	let state = guard.as_mut().ok_or("Configurazione non inizializzata".to_string())?;
+	if !state.config.device_id.is_empty() { return Ok(state.config.device_id.clone()); }
+	let mut bytes = [0u8; 16];
+	OsRng.fill_bytes(&mut bytes);
+	state.config.device_id = bytes.iter().map(|byte| format!("{:02x}", byte)).collect();
+	save(state)?;
+	Ok(state.config.device_id.clone())
+}
+
 fn save(state: &State) -> Result<(), String> {
 	let json = serde_json::to_string_pretty(&state.config).map_err(err_to_string)?;
 	fs::write(&state.override_path, json).map_err(err_to_string)
@@ -92,7 +107,7 @@ fn read_file(path: &Path) -> Option<Config> {
 fn bundled() -> Config {
 	match serde_json::from_str(BUNDLED) {
 		Ok(config) => config,
-		Err(_) => Config { host: default_host(), backup_keep: default_backup_keep() },
+		Err(_) => Config { host: default_host(), backup_keep: default_backup_keep(), device_id: String::new() },
 	}
 }
 

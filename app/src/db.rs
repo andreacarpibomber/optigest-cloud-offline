@@ -13,6 +13,7 @@
 use crate::secure_store::err_to_string;
 use rusqlite::{Connection, OpenFlags, Row};
 use std::fs;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::sync::{Mutex, MutexGuard, PoisonError};
 use tauri::{AppHandle, Manager};
@@ -54,6 +55,20 @@ pub fn close() {
 	*lock() = None;
 	*KEY.lock().unwrap_or_else(PoisonError::into_inner) = None;
 	*PATH.lock().unwrap_or_else(PoisonError::into_inner) = None;
+}
+
+pub fn delete_plaintext(app: &AppHandle) -> Result<(), String> {
+	let dir = app.path().app_data_dir().map_err(err_to_string)?;
+	let path = dir.join(DB_FILE);
+	let mut header = [0u8; 16];
+	fs::File::open(&path).and_then(|mut file| file.read_exact(&mut header)).map_err(err_to_string)?;
+	if &header != b"SQLite format 3\0" { return Err("Il database non risulta non cifrato".to_string()); }
+	close();
+	for suffix in ["-wal", "-shm", "-journal", ""] {
+		let file = dir.join(format!("{}{}", DB_FILE, suffix));
+		if file.exists() { fs::remove_file(file).map_err(err_to_string)?; }
+	}
+	Ok(())
 }
 
 pub fn path() -> Result<PathBuf, String> {

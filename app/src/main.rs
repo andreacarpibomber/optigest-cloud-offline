@@ -46,6 +46,7 @@ fn main() {
 			api::connect_upstream,
 			api::set_pin,
 			api::verify_pin,
+			api::delete_plain_database,
 			api::change_pin,
 			api::biometric_status,
 			api::set_biometric,

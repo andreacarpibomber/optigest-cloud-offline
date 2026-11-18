@@ -8,6 +8,7 @@ const listen = window.__TAURI__.event.listen;
 const MIN_SPLASH_MS = 1800;
 const HOST_LONG_PRESS_MS = 3000;
 const HOME_PAGE = "homepage.html";
+const PLAIN_DATABASE_ERROR = "Database non cifrato oppure chiave non valida";
 
 let pinMode = "unlock";
 let hostTimer = null;
@@ -60,6 +61,7 @@ function showPin(mode) {
 	$("pin-error").textContent = "";
 	$("pin-input").value = "";
 	$("pin-confirm").value = "";
+	$("btn-delete-database").classList.add("hidden");
 	if (mode === "set") {
 		$("pin-title").textContent = "Imposta il PIN di sblocco";
 		$("pin-confirm").classList.remove("hidden");
@@ -119,10 +121,28 @@ async function submitNewPin(pin) {
 	try {
 		await invoke("set_pin", { pin: pin });
 	} catch (error) {
-		$("pin-error").textContent = String(error);
+		showPinError(error);
 		return;
 	}
 	openHome();
+}
+
+function showPinError(error) {
+	const message = String(error);
+	$("pin-error").textContent = message;
+	$("btn-delete-database").classList.toggle("hidden", message !== PLAIN_DATABASE_ERROR);
+}
+
+async function deletePlainDatabase() {
+	if (!confirm("Eliminare il vecchio database locale? I dati non sincronizzati andranno persi.")) { return; }
+	try {
+		await invoke("delete_plain_database");
+		$("btn-delete-database").classList.add("hidden");
+		const pin = $("pin-input").value;
+		if (pinMode === "set") { await submitNewPin(pin); } else { await submitUnlock(pin); }
+	} catch (error) {
+		$("pin-error").textContent = String(error);
+	}
 }
 
 async function submitUnlock(pin) {
@@ -130,7 +150,7 @@ async function submitUnlock(pin) {
 	try {
 		outcome = await invoke("verify_pin", { pin: pin });
 	} catch (error) {
-		$("pin-error").textContent = String(error);
+		showPinError(error);
 		return;
 	}
 	if (outcome.status === "ok") { openHome(); return; }
@@ -192,6 +212,7 @@ function logoPressEnd() {
 $("pin-form").addEventListener("submit", submitPin);
 $("btn-repair").addEventListener("click", startPair);
 $("btn-biometric").addEventListener("click", tryBiometric);
+$("btn-delete-database").addEventListener("click", deletePlainDatabase);
 $("btn-support").addEventListener("click", function () { invoke("open_support").catch(function (error) { $("pin-error").textContent = String(error); }); });
 $("host-cancel").addEventListener("click", function () { $("host-overlay").classList.add("hidden"); });
 $("logo").addEventListener("pointerdown", logoPressStart);

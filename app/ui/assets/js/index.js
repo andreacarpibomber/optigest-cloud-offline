@@ -134,7 +134,7 @@ function showPinError(error) {
 }
 
 async function deletePlainDatabase() {
-	if (!confirm("Eliminare il vecchio database locale? I dati non sincronizzati andranno persi.")) { return; }
+	$("database-overlay").classList.add("hidden");
 	try {
 		await invoke("delete_plain_database");
 		$("btn-delete-database").classList.add("hidden");
@@ -212,7 +212,9 @@ function logoPressEnd() {
 $("pin-form").addEventListener("submit", submitPin);
 $("btn-repair").addEventListener("click", startPair);
 $("btn-biometric").addEventListener("click", tryBiometric);
-$("btn-delete-database").addEventListener("click", deletePlainDatabase);
+$("btn-delete-database").addEventListener("click", function () { $("database-overlay").classList.remove("hidden"); });
+$("database-confirm").addEventListener("click", deletePlainDatabase);
+$("database-cancel").addEventListener("click", function () { $("database-overlay").classList.add("hidden"); });
 $("btn-support").addEventListener("click", function () { invoke("open_support").catch(function (error) { $("pin-error").textContent = String(error); }); });
 $("host-cancel").addEventListener("click", function () { $("host-overlay").classList.add("hidden"); });
 $("logo").addEventListener("pointerdown", logoPressStart);

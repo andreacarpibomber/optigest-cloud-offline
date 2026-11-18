@@ -3,6 +3,7 @@
 	--fg: #f2f5f7;
 	--muted: #8a949e;
 	--accent: #628df6;
+	--warning: #e5a84b;
 	--danger: #ef6b6b;
 	--ok: #5bd58a;
 	--primary: #1c2541;
@@ -92,6 +93,7 @@ button.link {
 	color: var(--accent);
 	background: none;
 }
+button.recovery { width: 240px; margin-top: 4px; background: var(--warning); }
 .error { min-height: 20px; margin: 8px 0 0; font-size: 14px; color: var(--danger); }
 
 .big-name { margin: 0; font-size: 64px; font-weight: 600; }

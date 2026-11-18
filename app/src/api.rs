@@ -9,6 +9,7 @@
 
 use crate::backup::{self, BackupOutcome, BackupStatus};
 use crate::calendar::{self, EventRow};
+use crate::db;
 use crate::license;
 use crate::biometric::{self, BiometricStatus};
 use crate::external;
@@ -76,6 +77,11 @@ pub fn change_pin(app: AppHandle, current_pin: String, new_pin: String) -> Resul
 #[tauri::command]
 pub fn verify_pin(app: AppHandle, pin: String) -> Result<PinOutcome, String> {
 	pin::verify_pin(&app, pin)
+}
+
+#[tauri::command]
+pub fn delete_plain_database(app: AppHandle) -> Result<(), String> {
+	db::delete_plaintext(&app)
 }
 
 // Impronta (pubbliche per la schermata del PIN; l'attivazione richiede l'app sbloccata)

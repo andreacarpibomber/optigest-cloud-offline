@@ -40,6 +40,14 @@
 		<span id="app-version" class="app-version"></span>
 	</footer>
 
+	<div id="database-overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="database-confirm-title">
+		<div class="sheet">
+			<h3 id="database-confirm-title">Sei sicuro di voler ripristinare il database?</h3>
+			<button id="database-confirm" class="recovery" type="button">Ripristina database</button>
+			<button id="database-cancel" class="link" type="button">Annulla</button>
+		</div>
+	</div>
+
 	<!-- Selettore host (click sul nome dell'host, oppure long press 3s sul logo dello splash) -->
 	<div id="host-overlay" class="overlay hidden">
 		<div class="sheet">

@@ -134,7 +134,6 @@ function showPinError(error) {
 }
 
 async function deletePlainDatabase() {
-	$("database-overlay").classList.add("hidden");
 	try {
 		await invoke("delete_plain_database");
 		$("btn-delete-database").classList.add("hidden");
@@ -143,6 +142,19 @@ async function deletePlainDatabase() {
 	} catch (error) {
 		$("pin-error").textContent = String(error);
 	}
+}
+
+function confirmDatabaseRestore() {
+	swal({
+		title: "Sei sicuro di voler ripristinare il database?",
+		text: "L'operazione è irreversibile",
+		showCancelButton: true,
+		confirmButtonColor: "#e5a84b",
+		confirmButtonText: "Ripristina database",
+		cancelButtonText: "Annulla"
+	}).then((willRestore) => {
+		if (willRestore.value) { deletePlainDatabase(); }
+	});
 }
 
 async function submitUnlock(pin) {
@@ -212,9 +224,7 @@ function logoPressEnd() {
 $("pin-form").addEventListener("submit", submitPin);
 $("btn-repair").addEventListener("click", startPair);
 $("btn-biometric").addEventListener("click", tryBiometric);
-$("btn-delete-database").addEventListener("click", function () { $("database-overlay").classList.remove("hidden"); });
-$("database-confirm").addEventListener("click", deletePlainDatabase);
-$("database-cancel").addEventListener("click", function () { $("database-overlay").classList.add("hidden"); });
+$("btn-delete-database").addEventListener("click", confirmDatabaseRestore);
 $("btn-support").addEventListener("click", function () { invoke("open_support").catch(function (error) { $("pin-error").textContent = String(error); }); });
 $("host-cancel").addEventListener("click", function () { $("host-overlay").classList.add("hidden"); });
 $("logo").addEventListener("pointerdown", logoPressStart);
